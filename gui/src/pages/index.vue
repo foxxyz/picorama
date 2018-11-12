@@ -21,7 +21,6 @@ main
     align-items: center
     height: 100%
     background: #333
-    perspective: 180px
     h1
         text-transform: uppercase
         font-family: "Prompt"
@@ -31,6 +30,7 @@ main
         color: #666
         flex-wrap: wrap
         width: 14em
+        perspective: 180px
         span
             color: white
             margin: .3em
@@ -40,17 +40,20 @@ main
             justify-content: center
             align-items: center
             animation: cycle 2s infinite
-            &:nth-child(4n + 1)
-                background: #4281a4
+            animation-fill-mode: forwards
+            transition: filter 2s
+            user-select: none
+            &:nth-child(1), &:nth-child(5), &:nth-child(10)
+                background: #F4C65Acc
                 animation-delay: 0
-            &:nth-child(4n + 2)
-                background: #f2c14e
+            &:nth-child(2), &:nth-child(6), &:nth-child(9)
+                background: #FC825Dcc
                 animation-delay: .5s
-            &:nth-child(4n + 3)
-                background: #f78154
+            &:nth-child(3), &:nth-child(12), &:nth-child(8)
+                background: #78BDC9cc
                 animation-delay: 1s
-            &:nth-child(4n + 4)
-                background: #4d9078
+            &:nth-child(4), &:nth-child(11), &:nth-child(7)
+                background: #7ABF72cc
                 animation-delay: 1.5s
             &:nth-child(6n + 1)
                 transform: translateZ(1em) translateX(.5em) rotateY(20deg)
@@ -64,20 +67,20 @@ main
                 transform: translateZ(.32em) translateX(-.2em) rotateY(-12deg)
             &:nth-child(6n + 6)
                 transform: translateZ(1em) translateX(-.5em) rotateY(-20deg)
+            &:hover
+                filter: contrast(3)
+                transition: none
 
 @keyframes cycle
     0%
-        background: #4281a4
+        background: #7ABF72cc
     25%
-        background: #f2c14e
+        background: #F4C65Acc
     50%
-        background: #f78154
+        background: #FC825Dcc
     75%
-        background: #4d9078
+        background: #78BDC9cc
     100%
-        background: #4281a4
+        background: #7ABF72cc
 
-@keyframes fade
-    50%
-        opacity: 0
 </style>
