@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --hot --host 0.0.0.0",
-    "build": "webpack -p --env.production --progress --hide-modules"
+    "build": "webpack -p --env.production --progress --hide-modules",
+    "up": "rm -rf public/* && npm run build && rsync -r --delete --verbose public/. picorama:/home/public"
   },
   "author": "Ivo Janssen",
   "license": "UNLICENSED",

@@ -13,7 +13,7 @@ const routes = [
 ]
 
 // Initialize router
-const router = new VueRouter({ routes })
+const router = new VueRouter({ mode: 'history', routes })
 
 // Start the app, specifying the router and the initial element to mount App on
 const app = new Vue({ router, el: '#app', ...App })
