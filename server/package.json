@@ -9,8 +9,11 @@
   "author": "foxxyz",
   "license": "UNLICENSED",
   "dependencies": {
+    "argparse": "^1.0.10",
     "express": "^4.16.4",
     "express-fileupload": "^1.0.0",
-    "sharp": "^0.21.0"
+    "sharp": "^0.21.0",
+    "sql-template-strings": "^2.2.2",
+    "sqlite": "^3.0.0"
   }
 }
