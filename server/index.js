@@ -30,6 +30,12 @@ async function startServer() {
 	// Open database
 	const db = await sqlite.open(DATABASE_FILE)
 
+	server.use(function(req, res, next) {
+		res.header("Access-Control-Allow-Origin", "http://localhost:8080")
+		res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
+		next()
+	})
+
 	// Upload new photo
 	server.post('/add/', (req, res) => {
 
@@ -91,10 +97,11 @@ async function importExisting() {
 		let name = photo.slice(0, -4)
 
 		// Open file and create thumb
-		await sharp(path.join(STORAGE_DIR, photo))
+		let image = sharp(path.join(STORAGE_DIR, photo)).rotate()
+		await image
 			.resize(1280)
 			.toFile(path.join(THUMB_DIR, photo.replace('.jpg', '-1280.jpg')))
-		await sharp(path.join(STORAGE_DIR, photo))
+		await image
 			.resize(800)
 			.toFile(path.join(THUMB_DIR, photo.replace('.jpg', '-800.jpg')))
 

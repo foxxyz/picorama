@@ -1,31 +1,63 @@
 <template>
     <main>
         <h1><span v-for="l in title">{{ l }}</span></h1>
+        <ol class="posts">
+            <li v-for="photo in photos">
+                <div class="image">
+                    <transition name="fade">
+                        <img v-if="photo" :src="photo.uri" width="800" />
+                    </transition>
+                    <span v-if="photo" class="weekday">{{ photo.day }}</span>
+                    <span v-if="photo" class="date">{{ photo.date }}</span>
+                </div>
+            </li>
+        </ol>
     </main>
 </template>
 
 <script>
+const API_URL = 'http://localhost:8000'
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
 export default {
     data () {
         return {
-            title: "Picorama"
+            title: "Picorama",
+            photos: Array(7)
         }
+    },
+    methods: {
+        fetchData() {
+            fetch(`${API_URL}/q/`)
+                .then(res => res.json())
+                .then(res => res.map(p => {
+                    let date = new Date(p.day)
+                    p.day = DAYS[date.getDay()]
+                    p.timestamp = new Date(p.timestamp)
+                    p.date = String(date.getMonth() + 1).padStart(2, '0') + '/' + String(date.getDate()).padStart(2, '0')
+                    p.uri = `photos/${p.name}-800.jpg`
+                    return p
+                }))
+                .then(res => this.photos = res)
+        }
+    },
+    created() {
+        this.fetchData()
     }
 }
 </script>
 
 <style lang="sass">
 main
-    display: flex
-    justify-content: center
-    align-items: center
-    height: 100%
-    background: #333
+    font-family: "Prompt"
     h1
+        position: fixed
+        right: 1em
+        top: 1em
         text-transform: uppercase
-        font-family: "Prompt"
         display: flex
-        font-size: 2em
+        font-size: .6em
+        z-index: 5
         justify-content: center
         color: #666
         flex-wrap: wrap
@@ -70,6 +102,30 @@ main
             &:hover
                 filter: contrast(3)
                 transition: none
+    .posts
+        img
+            display: block
+        li
+            background: black
+            display: flex
+            justify-content: center
+            align-items: center
+            width: 100vw
+            height: 100vh
+        .image
+            position: relative
+            border: solid 1em white
+            max-height: calc(600px + 2em)
+            span
+                position: absolute
+                text-transform: uppercase
+                font-size: 2em
+            .weekday
+                bottom: -1.8em
+                left: 0
+            .date
+                bottom: -1.8em
+                right: 0
 
 @keyframes cycle
     0%
@@ -82,5 +138,11 @@ main
         background: #78BDC9cc
     100%
         background: #7ABF72cc
+
+.fade-enter-active, .fade-leave-active
+  transition: opacity .5s
+
+.fade-enter, .fade-leave-to
+  opacity: 0
 
 </style>

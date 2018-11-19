@@ -16,8 +16,8 @@ export default {}
 
     // Always set color/background/font-size on root
     body
-        background: #eee
-        color: #000
+        background: #000
+        color: #eee
         font-size: 16px
         font-family: Helvetica, Arial, sans-serif
 
