@@ -1,5 +1,5 @@
 <template>
-    <main>
+    <main class="index">
         <h1><span v-for="l in title">{{ l }}</span></h1>
         <ol class="posts">
             <li v-for="photo in photos">
@@ -17,7 +17,7 @@
 
 <script>
 const API_URL = 'http://localhost:8000'
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default {
     data () {
@@ -32,9 +32,9 @@ export default {
                 .then(res => res.json())
                 .then(res => res.map(p => {
                     let date = new Date(p.day)
-                    p.day = DAYS[date.getDay()]
+                    p.day = DAYS[date.getUTCDay()]
                     p.timestamp = new Date(p.timestamp)
-                    p.date = String(date.getMonth() + 1).padStart(2, '0') + '/' + String(date.getDate()).padStart(2, '0')
+                    p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
                     p.uri = `photos/${p.name}-800.jpg`
                     return p
                 }))
@@ -48,7 +48,7 @@ export default {
 </script>
 
 <style lang="sass">
-main
+main.index
     font-family: "Prompt"
     h1
         position: fixed

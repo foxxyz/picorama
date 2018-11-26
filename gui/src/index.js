@@ -3,13 +3,15 @@ import VueRouter from 'vue-router'
 
 import App from './app.vue'
 import IndexPage from './pages/index.vue'
+import UploadPage from './pages/upload.vue'
 
 // Register router plugin
 Vue.use(VueRouter)
 
 // Create routes
 const routes = [
-    { path: '/', component: IndexPage }
+    { path: '/', component: IndexPage },
+    { path: '/add', component: UploadPage },
 ]
 
 // Initialize router

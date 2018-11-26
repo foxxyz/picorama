@@ -37,7 +37,7 @@ async function startServer() {
 	})
 
 	// Upload new photo
-	server.post('/add/', (req, res) => {
+	server.post('/add/', async (req, res) => {
 
 		// Make sure parameters are present
 		if (!req.body || !req.body.date || !req.files || !req.files.photo) {
@@ -57,11 +57,16 @@ async function startServer() {
 		let fileName = `${STORAGE_DIR}/${localDate.toISOString().slice(0, 10)}-${date.valueOf() / 1000}.jpg`
 
 		// Write photo
-		req.files.photo.mv(fileName, function(err) {
-			if (err) return res.status(500).send(err)
-			console.info(`Added photo for ${localDate.toISOString().slice(0, 10)}: ${fileName}`)
-			res.send('Done!');
-		})
+		try {
+			await req.files.photo.mv(fileName)
+			await addEntry(db, path.basename(fileName))
+		}
+		catch(e) {
+			return res.status(500).send(err)
+		}
+
+		console.info(`Added photo for ${localDate.toISOString().slice(0, 10)}: ${fileName}`)
+		res.send('Done')
 	})
 
 	// Query photos
@@ -75,38 +80,44 @@ async function startServer() {
 	})
 }
 
+async function addEntry(db, fileName) {
+	// Parse date and timestamp
+	let parts = fileName.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))\.jpg$/)
+	if (!parts) {
+		throw 'No date found in filename'
+	}
+	if (!Date.parse(parts[1])) {
+		throw `Date ${parts[1]} is invalid`
+	}
+
+	let day = new Date(parts[1])
+	let timestamp = parts[3] ? new Date(parseInt(parts[3]) * 1000) : day
+	let name = fileName.slice(0, -4)
+
+	// Open file and create thumb
+	let image = sharp(path.join(STORAGE_DIR, fileName)).rotate()
+	await image
+		.resize(1280)
+		.toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-1280.jpg')))
+	await image
+		.resize(800)
+		.toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-800.jpg')))
+
+	// Store in database
+	await db.run(SQL`INSERT INTO Photo (name, day, timestamp) VALUES (${name}, ${day}, ${timestamp})`)
+}
+
 async function importExisting() {
 	const db = await sqlite.open(DATABASE_FILE)
 	await db.migrate({ force: 'last' })
 	for(let photo of fs.readdirSync(STORAGE_DIR)) {
-		// Parse date and timestamp
-		let parts = photo.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))\.jpg$/)
-		if (!parts) {
-			console.warn(`Skipping ${photo} - no date found in filename`)
-			continue
+		try {
+			console.info(`Importing ${photo}...`)
+			addEntry(db, photo)
 		}
-		if (!Date.parse(parts[1])) {
-			console.warn(`Skipping ${photo} - date ${parts[1]} is invalid`)
-			continue
+		catch(e) {
+			console.warn(`Skipping ${photo} - ${e}`)
 		}
-
-		console.info(`Importing ${photo}...`)
-
-		let day = new Date(parts[1])
-		let timestamp = parts[3] ? new Date(parseInt(parts[3]) * 1000) : day
-		let name = photo.slice(0, -4)
-
-		// Open file and create thumb
-		let image = sharp(path.join(STORAGE_DIR, photo)).rotate()
-		await image
-			.resize(1280)
-			.toFile(path.join(THUMB_DIR, photo.replace('.jpg', '-1280.jpg')))
-		await image
-			.resize(800)
-			.toFile(path.join(THUMB_DIR, photo.replace('.jpg', '-800.jpg')))
-
-		// Store in database
-		await db.run(SQL`INSERT INTO Photo (name, day, timestamp) VALUES (${name}, ${day}, ${timestamp})`)
 	}
 }
 
