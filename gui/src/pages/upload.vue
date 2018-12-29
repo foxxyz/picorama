@@ -74,7 +74,7 @@ main.upload
     flex-direction: column
     justify-content: center
     align-items: center
-    height: 100%
+    height: 100vh
     transition: opacity 1s
 
     &.loading
@@ -91,13 +91,15 @@ main.upload
         box-shadow: .3em .3em .1em rgba(255, 255, 255, .3)
 
         &[type=submit]
-            margin-top: 2em
+            margin-top: 1.5em
 
     form
         display: flex
         justify-content: center
         flex-direction: column
         align-items: center
+        > div
+            margin-bottom: 1em
 
     h1
         margin-bottom: .5em

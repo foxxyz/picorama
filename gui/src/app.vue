@@ -52,7 +52,7 @@ input
 
 .app
     font-family: "Prompt"
-    h1
+    > h1
         position: fixed
         right: 1em
         top: 1em

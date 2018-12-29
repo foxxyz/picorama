@@ -4,7 +4,9 @@
             <li v-for="photo in photos" :style="{backgroundColor: photo.color}">
                 <div class="image" :style="{borderColor: photo.contrast, color: photo.contrast}">
                     <transition name="fade">
-                        <img v-if="photo" :src="photo.uri" width="800" />
+                        <a :href="photo.fullURI" v-if="photo" target="_new">
+                            <img :src="photo.uri" width="800" />
+                        </a>
                     </transition>
                     <span v-if="photo" class="weekday">{{ photo.day }}</span>
                     <span v-if="photo" class="date">{{ photo.date }}</span>
@@ -43,6 +45,7 @@ export default {
                         p.timestamp = new Date(p.timestamp)
                         p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
                         p.uri = `/photos/${p.name}-800.jpg`
+                        p.fullURI = `/photos/${p.name}-1280.jpg`
                         return p
                     })
                 })
@@ -62,7 +65,7 @@ export default {
 <style lang="sass">
 main.index
     .posts
-        img
+        a, img
             display: block
         li
             background: black
@@ -92,6 +95,7 @@ main.index
         height: 100%
         width: 100%
         display: flex
+        pointer-events: none
         text-transform: uppercase
         justify-content: space-between
         a
@@ -107,6 +111,7 @@ main.index
                 background: rgba(255, 255, 255, .1)
         div
             width: 5em
+            pointer-events: all
         .next a
             justify-content: flex-end
 
