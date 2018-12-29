@@ -1,9 +1,8 @@
 <template>
     <main class="index">
-        <h1><span v-for="l in title">{{ l }}</span></h1>
         <ol class="posts">
-            <li v-for="photo in photos">
-                <div class="image">
+            <li v-for="photo in photos" :style="{backgroundColor: photo.color}">
+                <div class="image" :style="{borderColor: photo.contrast, color: photo.contrast}">
                     <transition name="fade">
                         <img v-if="photo" :src="photo.uri" width="800" />
                     </transition>
@@ -12,6 +11,10 @@
                 </div>
             </li>
         </ol>
+        <nav>
+            <div class="prev"><router-link v-if="prev" :to="{name: 'page', params: { page: prev }}">Prev</router-link></div>
+            <div class="next"><router-link v-if="next" :to="{name: 'page', params: { page: next }}">Next</router-link></div>
+        </nav>
     </main>
 </template>
 
@@ -22,86 +25,42 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export default {
     data () {
         return {
-            title: "Picorama",
-            photos: Array(7)
+            next: null,
+            photos: [],
+            prev: null
         }
     },
     methods: {
-        fetchData() {
-            fetch(`${API_URL}/q/`)
+        fetchData(page=1) {
+            fetch(`${API_URL}/q/${page}`)
                 .then(res => res.json())
-                .then(res => res.map(p => {
-                    let date = new Date(p.day)
-                    p.day = DAYS[date.getUTCDay()]
-                    p.timestamp = new Date(p.timestamp)
-                    p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
-                    p.uri = `photos/${p.name}-800.jpg`
-                    return p
-                }))
-                .then(res => this.photos = res)
+                .then(res => {
+                    this.next = res.next
+                    this.prev = res.prev
+                    this.photos = res.photos.map(p => {
+                        let date = new Date(p.day)
+                        p.day = DAYS[date.getUTCDay()]
+                        p.timestamp = new Date(p.timestamp)
+                        p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
+                        p.uri = `/photos/${p.name}-800.jpg`
+                        return p
+                    })
+                })
         }
     },
     created() {
-        this.fetchData()
+        this.fetchData(this.$route.params.page)
+    },
+    watch: {
+        $route() {
+            this.fetchData(this.$route.params.page)
+        }
     }
 }
 </script>
 
 <style lang="sass">
 main.index
-    font-family: "Prompt"
-    h1
-        position: fixed
-        right: 1em
-        top: 1em
-        text-transform: uppercase
-        display: flex
-        font-size: .6em
-        z-index: 5
-        justify-content: center
-        color: #666
-        flex-wrap: wrap
-        width: 14em
-        perspective: 180px
-        span
-            color: white
-            margin: .3em
-            width: 1.5em
-            height: 1.5em
-            display: flex
-            justify-content: center
-            align-items: center
-            animation: cycle 2s infinite
-            animation-fill-mode: forwards
-            transition: filter 2s
-            user-select: none
-            &:nth-child(1), &:nth-child(5), &:nth-child(10)
-                background: #F4C65Acc
-                animation-delay: 0
-            &:nth-child(2), &:nth-child(6), &:nth-child(9)
-                background: #FC825Dcc
-                animation-delay: .5s
-            &:nth-child(3), &:nth-child(12), &:nth-child(8)
-                background: #78BDC9cc
-                animation-delay: 1s
-            &:nth-child(4), &:nth-child(11), &:nth-child(7)
-                background: #7ABF72cc
-                animation-delay: 1.5s
-            &:nth-child(6n + 1)
-                transform: translateZ(1em) translateX(.5em) rotateY(20deg)
-            &:nth-child(6n + 2)
-                transform: translateZ(.32em) translateX(.2em) rotateY(12deg)
-            &:nth-child(6n + 3)
-                transform: translateZ(.032em) translateX(.02em) rotateY(4deg)
-            &:nth-child(6n + 4)
-                transform: translateZ(.032em) translateX(-.02em) rotateY(-4deg)
-            &:nth-child(6n + 5)
-                transform: translateZ(.32em) translateX(-.2em) rotateY(-12deg)
-            &:nth-child(6n + 6)
-                transform: translateZ(1em) translateX(-.5em) rotateY(-20deg)
-            &:hover
-                filter: contrast(3)
-                transition: none
     .posts
         img
             display: block
@@ -126,6 +85,30 @@ main.index
             .date
                 bottom: -1.8em
                 right: 0
+    nav
+        position: fixed
+        top: 0
+        left: 0
+        height: 100%
+        width: 100%
+        display: flex
+        text-transform: uppercase
+        justify-content: space-between
+        a
+            color: inherit
+            display: flex
+            align-items: flex-end
+            text-decoration: none
+            width: 100%
+            height: 100%
+            padding: 1em
+            transition: background .5s
+            &:hover
+                background: rgba(255, 255, 255, .1)
+        div
+            width: 5em
+        .next a
+            justify-content: flex-end
 
 @keyframes cycle
     0%

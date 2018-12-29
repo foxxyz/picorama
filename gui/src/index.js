@@ -10,7 +10,9 @@ Vue.use(VueRouter)
 
 // Create routes
 const routes = [
-    { path: '/', component: IndexPage },
+    { path: '/', component: IndexPage, children: [
+    	{ name: 'page', path: '/page/:page', component: IndexPage }
+    ] },
     { path: '/add', component: UploadPage },
 ]
 
