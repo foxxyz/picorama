@@ -38,6 +38,7 @@ body
     color: #eee
     font-size: 16px
     font-family: Prompt, Helvetica, Arial, sans-serif
+    overflow-x: hidden
 
 // Useful for single page apps to use up all available space
 html, body

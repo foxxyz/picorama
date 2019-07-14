@@ -9,7 +9,7 @@
                         </a>
                     </transition>
                     <span v-if="photo" class="weekday">{{ photo.day }}</span>
-                    <span v-if="photo" class="date">{{ photo.date }}</span>
+                    <span v-if="photo" class="date">{{ photo.date }}<br/><span class="year">{{ photo.year }}</span></span>
                 </div>
             </li>
         </ol>
@@ -21,7 +21,7 @@
 </template>
 
 <script>
-const API_URL = 'http://localhost:8000'
+const API_URL = 'http://' + window.location.hostname + ':8000'
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default {
@@ -44,6 +44,7 @@ export default {
                         p.day = DAYS[date.getUTCDay()]
                         p.timestamp = new Date(p.timestamp)
                         p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
+                        p.year = String(date.getUTCFullYear())
                         p.uri = `/photos/${p.name}-800.jpg`
                         p.fullURI = `/photos/${p.name}-1280.jpg`
                         return p
@@ -64,15 +65,18 @@ export default {
 
 <style lang="sass">
 main.index
+    width: 100%
     .posts
         a, img
             display: block
+        img
+            width: 100%
         li
             background: black
             display: flex
             justify-content: center
             align-items: center
-            width: 100vw
+            width: 100%
             height: 100vh
         .image
             position: relative
@@ -88,6 +92,12 @@ main.index
             .date
                 bottom: -1.8em
                 right: 0
+            .year
+                font-size: .5em
+                opacity: .2
+                width: 100%
+                text-align: right
+                margin-top: -.8em
     nav
         position: fixed
         top: 0
