@@ -69,6 +69,7 @@ async function startServer(authCode) {
     app.use(function(req, res, next) {
         res.header("Access-Control-Allow-Origin", args.url)
         res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
+        res.header("Cache-Control", "no-cache")
         next()
     })
 
