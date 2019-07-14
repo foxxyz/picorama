@@ -21,7 +21,7 @@ const POSTS_PER_PAGE = 7
 if (require.main == module) {
     // Parse arguments
     var parser = new ArgumentParser({ version: packageInfo.version, addHelp: true, description: packageInfo.description })
-    parser.addArgument(['-u', '--url'], { help: 'Server URL', required: true })
+    parser.addArgument(['-u', '--url'], { help: 'Server URL', defaultValue: '*' })
     parser.addArgument(['-p', '--port'], { help: 'Server Port (default: 8000)', defaultValue: 8000 })
     parser.addArgument(['-a', '--auth'], { help: 'Authentication code' })
     parser.addArgument(['--key'], { help: 'SSL Key (required for HTTPS usage)' })

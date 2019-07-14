@@ -21,12 +21,13 @@
 </template>
 
 <script>
-const API_URL = window.location.origin + (PRODUCTION ? '/api' : ':8000')
+const API_URL = `${window.location.protocol}//${window.location.hostname}${PRODUCTION ? '/api' : ':8000'}`
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default {
     data () {
         return {
+            active: null,
             next: null,
             photos: [],
             prev: null
@@ -40,7 +41,7 @@ export default {
                     this.next = res.next
                     this.prev = res.prev
                     this.photos = res.photos.map(p => {
-                        let date = new Date(p.day)
+                        const date = new Date(p.day)
                         p.day = DAYS[date.getUTCDay()]
                         p.timestamp = new Date(p.timestamp)
                         p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
@@ -49,13 +50,28 @@ export default {
                         p.fullURI = `/photos/${p.name}-1280.jpg`
                         return p
                     })
+                    this.setSelected()
                 })
+        },
+        setSelected() {
+            this.active = Math.floor(window.scrollY / window.innerHeight)
         }
     },
     created() {
         this.fetchData(this.$route.params.page)
+        this.$_chrome = document.querySelector('meta[name="theme-color"]')
+        window.addEventListener('scroll', this.setSelected)
+    },
+    beforeDestroy() {
+        window.removeEventListener('scroll', this.setSelected)
     },
     watch: {
+        // Set chrome color when active photo changes
+        active(val) {
+            if (!this.photos[val]) return
+            this.$_chrome.setAttribute('content', this.photos[val].color)
+        },
+        // Grab new data when navigating to new page
         $route() {
             this.fetchData(this.$route.params.page)
         }
@@ -67,10 +83,14 @@ export default {
 main.index
     width: 100%
     .posts
+        a
+            width: 100%
+            padding-bottom: calc(100% / (800 / 600))
         a, img
             display: block
         img
             width: 100%
+            position: absolute
         li
             background: black
             display: flex
@@ -78,10 +98,13 @@ main.index
             align-items: center
             width: 100%
             height: 100vh
+            padding: 2em
         .image
             position: relative
             border: solid 1em white
             max-height: calc(600px + 2em)
+            max-width: calc(800px + 2em)
+            width: 100%
             span
                 position: absolute
                 text-transform: uppercase
@@ -117,8 +140,13 @@ main.index
             height: 100%
             padding: 1em
             transition: background .5s
-            &:hover
-                background: rgba(255, 255, 255, .1)
+            user-select: none
+            -webkit-tap-highlight-color: transparent
+            &:active
+                background-color: transparent
+            @media (min-aspect-ratio: 13/10)
+                &:hover
+                    background: rgba(255, 255, 255, .1)
         div
             width: 5em
             pointer-events: all

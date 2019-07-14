@@ -20,4 +20,4 @@ Installation
 Deployment
 ----------
 
-TBA
+ * Create a link for the world to access your photos: `ln -s ../protected/cv/server/thumbs photos`
