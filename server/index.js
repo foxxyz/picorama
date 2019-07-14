@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 const { ArgumentParser } = require('argparse')
+const bcrypt = require('bcrypt')
 const colors = require('get-image-colors')
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const fs = require('fs')
+const http = require('http')
+const https = require('https')
 const path = require('path')
 const sharp = require('sharp')
 const sqlite = require('sqlite')
@@ -15,30 +18,74 @@ const THUMB_DIR = './thumbs'
 const DATABASE_FILE = './db.sqlite'
 const POSTS_PER_PAGE = 7
 
-// Parse arguments
-var parser = new ArgumentParser({ version: packageInfo.version, addHelp: true, description: packageInfo.description })
-parser.addArgument(['-p', '--port'], { help: 'Server Port (default: 8000)', defaultValue: 8000 })
-parser.addArgument(['--import'], { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'storeTrue' })
-var args = parser.parseArgs()
+if (require.main == module) {
+    // Parse arguments
+    var parser = new ArgumentParser({ version: packageInfo.version, addHelp: true, description: packageInfo.description })
+    parser.addArgument(['-u', '--url'], { help: 'Server URL', required: true })
+    parser.addArgument(['-p', '--port'], { help: 'Server Port (default: 8000)', defaultValue: 8000 })
+    parser.addArgument(['-a', '--auth'], { help: 'Authentication code' })
+    parser.addArgument(['--key'], { help: 'SSL Key (required for HTTPS usage)' })
+    parser.addArgument(['--cert'], { help: 'SSL Certificate (required for HTTPS usage' })
+    parser.addArgument(['--import'], { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'storeTrue' })
+    var args = parser.parseArgs()
 
-// Create thumb directory if it doesn't exist
-if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR)
+    // Create thumb directory if it doesn't exist
+    if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR)
 
-async function startServer() {
-    const server = express()
-    server.use(fileUpload())
+    startServer(args.auth)
+}
+
+// Set HTTPS credentials
+function readCredentials({ key, cert }) {
+    if (!key || !cert) return
+    try {
+        key = fs.readFileSync(key)
+        cert = fs.readFileSync(cert)
+    }
+    catch(e) {
+        console.error(`Unable to read SSL key/certificate: ${e}. Falling back to HTTP...`)
+    }
+    return { key, cert }
+}
+
+async function startServer(authCode) {
+    const app = express()
+    app.use(fileUpload())
+
+    // Make sure we have an auth code
+    if (!authCode) {
+        // Check environment variables
+        authCode = process.env.PICORAMA_AUTH_CODE
+        // Generate an auth code if we still don't have one
+        if (!authCode) {
+            authCode = Math.round(Math.random() * 655533).toString(16)
+            console.warn(`No authentication code was passed or found in 'PICORAMA_AUTH_CODE'. Your randomly generated auth code is: ${authCode}`)
+        }
+    }
 
     // Open database
     const db = await sqlite.open(DATABASE_FILE)
 
-    server.use(function(req, res, next) {
-        res.header("Access-Control-Allow-Origin", "http://192.168.1.114:8080")
+    app.use(function(req, res, next) {
+        res.header("Access-Control-Allow-Origin", args.url)
         res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
         next()
     })
 
     // Upload new photo
-    server.post('/add/', async (req, res) => {
+    app.post('/add/', async (req, res, next) => {
+
+        // Make sure request is authenticated
+        try {
+            if (!req.headers.authorization) throw 'No credentials provided'
+            let hash = req.headers.authorization.replace('Bearer ', '')
+            let result = await bcrypt.compare(authCode, hash)
+            if (!result) throw 'Incorrect credentials'
+        }
+        catch(e) {
+            console.warn(`Auth failure for request from ${req.ip}: ${e}`)
+            return res.status(403).send('Authentication Failure')
+        }
 
         // Make sure parameters are present
         if (!req.body || !req.body.date || !req.files || !req.files.photo) {
@@ -72,7 +119,7 @@ async function startServer() {
     })
 
     // Query photos
-    server.get('/q/:page', async (req, res) => {
+    app.get('/q/:page', async (req, res) => {
         let total = (await db.get(SQL`SELECT COUNT(*) AS total FROM Photo`)).total
         let page = req.params.page ? parseInt(req.params.page) : 1
         // Don't exceed max posts
@@ -83,8 +130,12 @@ async function startServer() {
         res.json({next, photos, prev})
     })
 
-    server.listen(args.port, () => {
-        console.info('--- Picorama Server Active (port 8000)')
+    let httpsCredentials = readCredentials(args)
+    let scheme = httpsCredentials ? 'https' : 'http'
+    let server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
+    server.listen(args.port, (s) => {
+        let addr = server.address()
+        console.info(`--- Picorama Server Active at ${scheme}://${addr.address}:${addr.port} ---`)
     })
 }
 
@@ -121,20 +172,4 @@ async function addEntry(db, fileName) {
     await db.run(SQL`INSERT INTO Photo (name, day, timestamp, color, contrast) VALUES (${name}, ${day}, ${timestamp}, ${dominantHex}, ${contrastColor})`)
 }
 
-async function importExisting() {
-    const db = await sqlite.open(DATABASE_FILE)
-    await db.migrate({ force: 'last' })
-    for(let photo of fs.readdirSync(STORAGE_DIR)) {
-        try {
-            console.info(`Importing ${photo}...`)
-            await addEntry(db, photo)
-        }
-        catch(e) {
-            console.warn(`Skipping ${photo} - ${e}`)
-        }
-    }
-}
-
-// Import existing photos (if not already present)
-if (args.import) importExisting()
-else startServer()
+module.exports = { addEntry }
