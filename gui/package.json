@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server --hot --host 0.0.0.0",
+    "dev": "webpack-dev-server --hot",
     "build": "webpack -p --env.production --progress --hide-modules",
     "up": "rm -rf public/* && npm run build && rsync -r --delete --verbose public/. picorama:/home/public"
   },
