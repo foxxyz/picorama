@@ -5,9 +5,7 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin')
 module.exports = (env = {}) => {
     let config = {
         mode: env.PRODUCTION ? 'production' : 'development',
-        entry: {
-            'main': './src/index.js',
-        },
+
         output: {
             path: path.join(__dirname, 'public'),
             filename: '[name].js'
@@ -29,7 +27,9 @@ module.exports = (env = {}) => {
                         {
                             loader: 'sass-loader',
                             options: {
-                                indentedSyntax: true
+                                sassOptions: {
+                                    indentedSyntax: true
+                                }
                             }
                         }
                     ]
@@ -40,7 +40,7 @@ module.exports = (env = {}) => {
                     exclude: /node_modules/
                 },
                 {
-                    test: /(\.html|favicon)$/,
+                    test: /(\.html$|favicon)/,
                     loader: 'file-loader',
                     options: {
                         name: '[name].[ext]'
@@ -58,7 +58,6 @@ module.exports = (env = {}) => {
         },
         devServer: {
             historyApiFallback: true,
-            noInfo: true,
             contentBase: path.join('.', 'src'),
         },
         devtool: 'cheap-module-eval-source-map',

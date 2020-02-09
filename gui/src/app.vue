@@ -9,6 +9,8 @@
 
 <script>
 import './index.html'
+import './favicon.ico'
+
 export default {
     data() {
         return {
