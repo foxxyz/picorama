@@ -21,3 +21,10 @@ Deployment
 ----------
 
  * Create a link for the world to access your photos: `ln -s ../protected/cv/server/thumbs photos`
+ * Set up a run script that can be executed as a daemon. For example:
+
+```
+./index.js --url https://yoursite.url --auth 55555 -p 8080
+```
+
+Add this in your server directory as `run.sh`.
