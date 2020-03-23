@@ -17,6 +17,8 @@ const STORAGE_DIR = './media'
 const THUMB_DIR = './thumbs'
 const DATABASE_FILE = './db.sqlite'
 const POSTS_PER_PAGE = 7
+// Allow localhost for development
+const CORS_WHITE_LIST = ['http://localhost:8080']
 
 if (require.main == module) {
     // Parse arguments
@@ -67,7 +69,8 @@ async function startServer(authCode) {
     const db = await sqlite.open(DATABASE_FILE)
 
     app.use(function(req, res, next) {
-        res.header("Access-Control-Allow-Origin", args.url)
+        const origin = req.get('origin')
+        res.header("Access-Control-Allow-Origin", WHITE_LIST.includes(origin) : origin : args.url)
         res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
         res.header("Cache-Control", "no-cache")
         next()
