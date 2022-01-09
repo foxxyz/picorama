@@ -1,10 +1,12 @@
 <template>
     <div class="app">
         <h1>
-            <span
-                v-for="l in title"
-                :key="l"
-            >{{ l }}</span>
+            <router-link to="/">
+                <span
+                    v-for="l in title"
+                    :key="l"
+                >{{ l }}</span>
+            </router-link>
         </h1>
         <router-view v-slot="{ Component, route }">
             <transition :name="slide">
@@ -27,7 +29,14 @@ export default {
     },
     watch: {
         $route(to, from) {
-            if (!to.params.page) return
+            if (from.path === to.path) {
+                this.slide = ''
+                return
+            }
+            if (!to.params.page) {
+                this.slide = 'slide-left'
+                return
+            }
             this.slide = parseInt(to.params.page) < parseInt(from.params.page) ? 'slide-left' : 'slide-right'
         }
     }
@@ -67,14 +76,16 @@ input
         right: 1em
         top: 1em
         text-transform: uppercase
-        display: flex
         font-size: .6em
         z-index: 5
-        justify-content: center
         color: #666
-        flex-wrap: wrap
         width: 14em
-        perspective: 180px
+        a
+            display: flex
+            justify-content: center
+            flex-wrap: wrap
+            perspective: 180px
+            text-decoration: none
         span
             color: white
             margin: .3em
