@@ -2,33 +2,61 @@
     <main :class="['upload', {loading}]">
         <h1>Add Photo</h1>
         <transition name="toast">
-            <div v-show="status.active" class="status">{{ status.message }}</div>
+            <div
+                v-show="status.active"
+                class="status"
+            >
+                {{ status.message }}
+            </div>
         </transition>
-        <form :action="APIURL + '/add/'" method="post" encType="multipart/form-data" @submit.prevent="save">
+        <form
+            :action="APIURL + '/add/'"
+            method="post"
+            encType="multipart/form-data"
+            @submit.prevent="save"
+        >
             <div>
                 <label>Photo</label>
-                <input type="file" name="photo" accept="image/*" @change="fileAdded" required="true" />
+                <input
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    @change="fileAdded"
+                    required="true"
+                >
             </div>
             <div>
                 <label>Date</label>
-                <input type="datetime-local" name="date" @change="dateChanged" :value="photoDate.toISOString().slice(0, -8)" required="true" />
+                <input
+                    type="datetime-local"
+                    name="date"
+                    @change="dateChanged"
+                    :value="photoDate.toISOString().slice(0, -8)"
+                    required="true"
+                >
             </div>
-            <button type="submit" :disabled="loading">Add</button>
+            <button
+                type="submit"
+                :disabled="loading"
+            >
+                Add
+            </button>
         </form>
     </main>
 </template>
 
 <script>
 const API_URL = 'http://localhost:8000'
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const MINUTE = 60000
+const STATUS_OK = 200
 export default {
     data () {
-        let now = new Date()
+        const now = new Date()
         return {
             APIURL: API_URL,
             file: null,
             // Subtract timezone offset since toISOString() ignores timezone
-            photoDate: new Date(now.getTime() - now.getTimezoneOffset() * 60000),
+            photoDate: new Date(now.getTime() - now.getTimezoneOffset() * MINUTE),
             loading: false,
             status: { active: false, message: '' }
         }
@@ -38,30 +66,30 @@ export default {
             this.status.active = false
         },
         dateChanged(e) {
-            let newDate = new Date(e.target.value)
-            this.photoDate = new Date(newDate.getTime() - newDate.getTimezoneOffset() * 60000)
+            const newDate = new Date(e.target.value)
+            this.photoDate = new Date(newDate.getTime() - newDate.getTimezoneOffset() * MINUTE)
         },
         fileAdded(e) {
             this.file = e.target.files[0]
         },
         save() {
-            clearTimeout(this.$_statusTimeout)
+            clearTimeout(this._statusTimeout)
             this.status.active = false
             this.loading = true
-            let formData = new FormData()
-            let xhr = new XMLHttpRequest()
+            const formData = new FormData()
+            const xhr = new XMLHttpRequest()
             formData.append('date', this.photoDate.toISOString().slice(0, -8))
             formData.append('photo', this.file, this.file.name)
-            xhr.open("POST", 'http://' + window.location.hostname + ":8000/add/", true)
+            xhr.open('POST', `http://${window.location.hostname}:8000/add/`, true)
             xhr.addEventListener('readystatechange', this.uploaded.bind(this, xhr))
             xhr.send(formData)
         },
-        uploaded(xhr, e) {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+        uploaded(xhr) {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === STATUS_OK) {
                 this.loading = false
                 this.status.message = `Photo added for ${this.photoDate.toISOString().slice(0, 10)}`
                 this.status.active = true
-                this.$_statusTimeout = setTimeout(this.clearStatus, 5000)
+                this._statusTimeout = setTimeout(this.clearStatus, 5000)
             }
         }
     }

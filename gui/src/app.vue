@@ -1,9 +1,19 @@
 <template>
     <div class="app">
-        <h1><span v-for="l in title">{{ l }}</span></h1>
-        <transition :name="slide">
-        	<router-view :key="$route.params.page"></router-view>
-        </transition>
+        <h1>
+            <span
+                v-for="l in title"
+                :key="l"
+            >{{ l }}</span>
+        </h1>
+        <router-view
+            :key="$route.params.page"
+            v-slot="{ Component }"
+        >
+            <transition :name="slide">
+                <component :is="Component" />
+            </transition>
+        </router-view>
     </div>
 </template>
 
@@ -12,7 +22,7 @@ export default {
     data() {
         return {
             slide: 'slide-left',
-            title: "Picorama"
+            title: 'Picorama'
         }
     },
     watch: {

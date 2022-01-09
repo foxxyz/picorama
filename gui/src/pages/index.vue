@@ -1,21 +1,55 @@
 <template>
     <main class="index">
         <ol class="posts">
-            <li v-for="photo in photos" :style="{backgroundColor: photo.color}">
-                <div class="image" :style="{borderColor: photo.contrast, color: photo.contrast}">
+            <li
+                v-for="photo in photos"
+                :key="photo.id"
+                :style="{backgroundColor: photo.color}"
+            >
+                <div
+                    class="image"
+                    :style="{borderColor: photo.contrast, color: photo.contrast}"
+                >
                     <transition name="fade">
-                        <a :href="photo.fullURI" v-if="photo" target="_new">
-                            <img :src="photo.uri" width="800" />
+                        <a
+                            :href="photo.fullURI"
+                            v-if="photo"
+                            target="_new"
+                        >
+                            <img
+                                :src="photo.uri"
+                                width="800"
+                            >
                         </a>
                     </transition>
-                    <span v-if="photo" class="weekday">{{ photo.day }}</span>
-                    <span v-if="photo" class="date">{{ photo.date }}<br/><span class="year">{{ photo.year }}</span></span>
+                    <span
+                        v-if="photo"
+                        class="weekday"
+                    >{{ photo.day }}</span>
+                    <span
+                        v-if="photo"
+                        class="date"
+                    >{{ photo.date }}<br><span class="year">{{ photo.year }}</span></span>
                 </div>
             </li>
         </ol>
         <nav>
-            <div class="prev"><router-link v-if="prev" :to="{name: 'page', params: { page: prev }}">Prev</router-link></div>
-            <div class="next"><router-link v-if="next" :to="{name: 'page', params: { page: next }}">Next</router-link></div>
+            <div class="prev">
+                <router-link
+                    v-if="prev"
+                    :to="{name: 'page', params: { page: prev }}"
+                >
+                    Prev
+                </router-link>
+            </div>
+            <div class="next">
+                <router-link
+                    v-if="next"
+                    :to="{name: 'page', params: { page: next }}"
+                >
+                    Next
+                </router-link>
+            </div>
         </nav>
     </main>
 </template>
@@ -34,7 +68,7 @@ export default {
         }
     },
     methods: {
-        fetchData(page=1) {
+        fetchData(page = 1) {
             fetch(`${API_URL}/q/${page}`)
                 .then(res => res.json())
                 .then(res => {
@@ -44,7 +78,7 @@ export default {
                         const date = new Date(p.day)
                         p.day = DAYS[date.getUTCDay()]
                         p.timestamp = new Date(p.timestamp)
-                        p.date = String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCDate()).padStart(2, '0')
+                        p.date = `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')}`
                         p.year = String(date.getUTCFullYear())
                         p.uri = `/photos/${p.name}-800.jpg`
                         p.fullURI = `/photos/${p.name}-1280.jpg`
@@ -59,17 +93,17 @@ export default {
     },
     created() {
         this.fetchData(this.$route.params.page)
-        this.$_chrome = document.querySelector('meta[name="theme-color"]')
+        this._chrome = document.querySelector('meta[name="theme-color"]')
         window.addEventListener('scroll', this.setSelected)
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener('scroll', this.setSelected)
     },
     watch: {
         // Set chrome color when active photo changes
         active(val) {
             if (!this.photos[val]) return
-            this.$_chrome.setAttribute('content', this.photos[val].color)
+            this._chrome.setAttribute('content', this.photos[val].color)
         },
         // Grab new data when navigating to new page
         $route() {
