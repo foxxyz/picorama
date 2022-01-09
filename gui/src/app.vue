@@ -6,12 +6,12 @@
                 :key="l"
             >{{ l }}</span>
         </h1>
-        <router-view
-            :key="$route.params.page"
-            v-slot="{ Component }"
-        >
+        <router-view v-slot="{ Component, route }">
             <transition :name="slide">
-                <component :is="Component" />
+                <component
+                    :is="Component"
+                    :key="route.path"
+                />
             </transition>
         </router-view>
     </div>
@@ -119,9 +119,9 @@ input
     position: absolute
     transition: transform .5s ease-in-out
 
-.slide-left-enter, .slide-right-leave-to
+.slide-left-enter-from, .slide-right-leave-to
     transform: translate(-100vw, 0)
 
-.slide-left-leave-to, .slide-right-enter
+.slide-left-leave-to, .slide-right-enter-from
     transform: translate(100vw, 0)
 </style>
