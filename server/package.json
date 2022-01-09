@@ -1,10 +1,11 @@
 {
   "name": "picorama-server",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Picorama Server",
   "main": "index.js",
   "scripts": {
-    "pull": "rsync -av picorama:/home/protected/cv/server/media/ media"
+    "pull": "rsync -av picorama:/home/protected/cv/server/media/ media",
+    "lint": "eslint ."
   },
   "author": "foxxyz",
   "license": "UNLICENSED",
@@ -18,5 +19,18 @@
     "sql-template-strings": "^2.2.2",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "@appliedminds/eslint-config": "^1.1.1",
+    "eslint": "^8.5.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "es6": true,
+      "node": true
+    },
+    "extends": [
+      "@appliedminds"
+    ]
   }
 }
