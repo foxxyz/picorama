@@ -4,7 +4,7 @@ Picorama GUI
 Requirements
 ------------
 
-### Node.js 10+
+### Node.js 16+
 
  * OSX: `brew install node` using [Homebrew](http://brew.sh/)
  * Linux: `apt install nodejs` ([see Ubuntu/Debian specific instructions](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions)) or `pacman -S nodejs` (Arch Linux)
