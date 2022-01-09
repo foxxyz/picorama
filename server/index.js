@@ -10,6 +10,7 @@ const https = require('https')
 const path = require('path')
 const sharp = require('sharp')
 const sqlite = require('sqlite')
+const sqlite3 = require('sqlite3')
 const SQL = require('sql-template-strings')
 const packageInfo = require('./package.json')
 
@@ -22,14 +23,15 @@ const CORS_WHITE_LIST = ['http://localhost:8080']
 
 if (require.main == module) {
     // Parse arguments
-    var parser = new ArgumentParser({ version: packageInfo.version, addHelp: true, description: packageInfo.description })
-    parser.addArgument(['-u', '--url'], { help: 'Server URL', defaultValue: '*' })
-    parser.addArgument(['-p', '--port'], { help: 'Server Port (default: 8000)', defaultValue: 8000 })
-    parser.addArgument(['-a', '--auth'], { help: 'Authentication code' })
-    parser.addArgument(['--key'], { help: 'SSL Key (required for HTTPS usage)' })
-    parser.addArgument(['--cert'], { help: 'SSL Certificate (required for HTTPS usage' })
-    parser.addArgument(['--import'], { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'storeTrue' })
-    var args = parser.parseArgs()
+    var parser = new ArgumentParser({ add_help: true, description: packageInfo.description })
+    parser.add_argument('-v', '--version', { action: 'version', version: packageInfo.version })
+    parser.add_argument('-u', '--url', { help: 'Server URL', default: '*' })
+    parser.add_argument('-p', '--port', { help: 'Server Port (default: 8000)', default: 8000 })
+    parser.add_argument('-a', '--auth', { help: 'Authentication code' })
+    parser.add_argument('--key', { help: 'SSL Key (required for HTTPS usage)' })
+    parser.add_argument('--cert', { help: 'SSL Certificate (required for HTTPS usage' })
+    parser.add_argument('--import', { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'store_true' })
+    var args = parser.parse_args()
 
     // Create thumb directory if it doesn't exist
     if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR)
@@ -66,11 +68,14 @@ async function startServer(authCode) {
     }
 
     // Open database
-    const db = await sqlite.open(DATABASE_FILE)
+    const db = await sqlite.open({
+        filename: DATABASE_FILE,
+        driver: sqlite3.Database
+    })
 
     app.use(function(req, res, next) {
         const origin = req.get('origin')
-        res.header("Access-Control-Allow-Origin", WHITE_LIST.includes(origin) : origin : args.url)
+        res.header("Access-Control-Allow-Origin", CORS_WHITE_LIST.includes(origin) ? origin : args.url)
         res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
         res.header("Cache-Control", "no-cache")
         next()
