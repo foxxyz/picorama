@@ -10,7 +10,7 @@
             </div>
         </transition>
         <form
-            :action="APIURL + '/add/'"
+            :action="API_URL + '/add/'"
             method="post"
             encType="multipart/form-data"
             @submit.prevent="save"
@@ -45,53 +45,53 @@
     </main>
 </template>
 
-<script>
+<script setup>
+import { reactive, ref } from 'vue'
+
 const API_URL = 'http://localhost:8000'
 const MINUTE = 60000
 const STATUS_OK = 200
-export default {
-    data () {
-        const now = new Date()
-        return {
-            APIURL: API_URL,
-            file: null,
-            // Subtract timezone offset since toISOString() ignores timezone
-            photoDate: new Date(now.getTime() - now.getTimezoneOffset() * MINUTE),
-            loading: false,
-            status: { active: false, message: '' }
-        }
-    },
-    methods: {
-        clearStatus() {
-            this.status.active = false
-        },
-        dateChanged(e) {
-            const newDate = new Date(e.target.value)
-            this.photoDate = new Date(newDate.getTime() - newDate.getTimezoneOffset() * MINUTE)
-        },
-        fileAdded(e) {
-            this.file = e.target.files[0]
-        },
-        save() {
-            clearTimeout(this._statusTimeout)
-            this.status.active = false
-            this.loading = true
-            const formData = new FormData()
-            const xhr = new XMLHttpRequest()
-            formData.append('date', this.photoDate.toISOString().slice(0, -8))
-            formData.append('photo', this.file, this.file.name)
-            xhr.open('POST', `http://${window.location.hostname}:8000/add/`, true)
-            xhr.addEventListener('readystatechange', this.uploaded.bind(this, xhr))
-            xhr.send(formData)
-        },
-        uploaded(xhr) {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === STATUS_OK) {
-                this.loading = false
-                this.status.message = `Photo added for ${this.photoDate.toISOString().slice(0, 10)}`
-                this.status.active = true
-                this._statusTimeout = setTimeout(this.clearStatus, 5000)
-            }
-        }
+
+const file = ref(null)
+// Subtract timezone offset since toISOString() ignores timezone
+const now = new Date()
+const photoDate = ref(new Date(now.getTime() - now.getTimezoneOffset() * MINUTE))
+const loading = ref(false)
+const status = reactive({
+    active: false,
+    message: ''
+})
+
+function clearStatus() {
+    status.active = false
+}
+function dateChanged(e) {
+    const newDate = new Date(e.target.value)
+    photoDate.value = new Date(newDate.getTime() - newDate.getTimezoneOffset() * MINUTE)
+}
+function fileAdded(e) {
+    file.value = e.target.files[0]
+}
+
+let statusTimeout
+function save() {
+    clearTimeout(statusTimeout)
+    status.active = false
+    loading.value = true
+    const formData = new FormData()
+    const xhr = new XMLHttpRequest()
+    formData.append('date', photoDate.value.toISOString().slice(0, -8))
+    formData.append('photo', file.value, file.value.name)
+    xhr.open('POST', `http://${window.location.hostname}:8000/add/`, true)
+    xhr.addEventListener('readystatechange', uploaded.bind(undefined, xhr))
+    xhr.send(formData)
+}
+function uploaded(xhr) {
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === STATUS_OK) {
+        loading.value = false
+        status.message = `Photo added for ${photoDate.value.toISOString().slice(0, 10)}`
+        status.active = true
+        statusTimeout = setTimeout(clearStatus, 5000)
     }
 }
 </script>
@@ -153,11 +153,11 @@ main.upload
         text-align: center
         box-shadow: .3em .3em .1em rgba(255, 255, 255, .3)
 
-.toast-enter
+.toast-enter-from
     transform: translate(0, -1em)
     opacity: 0
 
-.toast-leave
+.toast-leave-from
     transform: translate(0, 1em)
     opacity: 0
 
