@@ -54,64 +54,55 @@
     </main>
 </template>
 
-<script>
+<script setup>
+import { ref, onBeforeUnmount, watchEffect } from 'vue'
+import { useRoute } from 'vue-router'
+
 const API_URL = `${window.location.protocol}//${window.location.hostname}${import.meta.env.PROD ? '/api' : ':8000'}`
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export default {
-    data () {
-        return {
-            active: null,
-            next: null,
-            photos: [],
-            prev: null
-        }
-    },
-    methods: {
-        fetchData(page = 1) {
-            page = page || 1
-            fetch(`${API_URL}/q/${page}`)
-                .then(res => res.json())
-                .then(res => {
-                    this.next = res.next
-                    this.prev = res.prev
-                    this.photos = res.photos.map(p => {
-                        const date = new Date(p.day)
-                        p.day = DAYS[date.getUTCDay()]
-                        p.timestamp = new Date(p.timestamp)
-                        p.date = `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')}`
-                        p.year = String(date.getUTCFullYear())
-                        p.uri = `/photos/${p.name}-800.jpg`
-                        p.fullURI = `/photos/${p.name}-1280.jpg`
-                        return p
-                    })
-                    this.setSelected()
-                })
-        },
-        setSelected() {
-            this.active = Math.floor(window.scrollY / window.innerHeight)
-        }
-    },
-    created() {
-        this.fetchData(this.$route.params.page)
-        this._chrome = document.querySelector('meta[name="theme-color"]')
-        window.addEventListener('scroll', this.setSelected)
-    },
-    beforeUnmount() {
-        window.removeEventListener('scroll', this.setSelected)
-    },
-    watch: {
-        // Set chrome color when active photo changes
-        active(val) {
-            if (!this.photos[val]) return
-            this._chrome.setAttribute('content', this.photos[val].color)
-        },
-        // Grab new data when navigating to new page
-        $route() {
-            this.fetchData(this.$route.params.page)
-        }
-    }
+const next = ref(null)
+const photos = ref([])
+const prev = ref(null)
+async function fetchData(page = 1) {
+    page = page || 1
+    const response = await fetch(`${API_URL}/q/${page}`)
+    const data = await response.json()
+    next.value = data.next
+    prev.value = data.prev
+    photos.value = data.photos.map(p => {
+        const date = new Date(p.day)
+        p.day = DAYS[date.getUTCDay()]
+        p.timestamp = new Date(p.timestamp)
+        p.date = `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')}`
+        p.year = String(date.getUTCFullYear())
+        p.uri = `/photos/${p.name}-800.jpg`
+        p.fullURI = `/photos/${p.name}-1280.jpg`
+        return p
+    })
+    setSelected()
 }
+// Grab updated photos
+const route = useRoute()
+fetchData(route.params.page)
+
+
+// Set changed photo on scroll
+const active = ref(null)
+function setSelected() {
+    active.value = Math.floor(window.scrollY / window.innerHeight)
+}
+window.addEventListener('scroll', setSelected)
+onBeforeUnmount(() => {
+    window.removeEventListener('scroll', setSelected)
+})
+
+// Update chrome color when shown photo changes
+const chrome = document.querySelector('meta[name="theme-color"]')
+watchEffect(() => {
+    if (active.value === null) return
+    chrome.setAttribute('content', photos.value[active.value].color)
+})
 </script>
 
 <style lang="sass">
