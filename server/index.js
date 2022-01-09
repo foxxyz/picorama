@@ -21,9 +21,9 @@ const POSTS_PER_PAGE = 7
 // Allow localhost for development
 const CORS_WHITE_LIST = ['http://localhost:8080']
 
-if (require.main == module) {
+if (require.main === module) {
     // Parse arguments
-    var parser = new ArgumentParser({ add_help: true, description: packageInfo.description })
+    const parser = new ArgumentParser({ add_help: true, description: packageInfo.description })
     parser.add_argument('-v', '--version', { action: 'version', version: packageInfo.version })
     parser.add_argument('-u', '--url', { help: 'Server URL', default: '*' })
     parser.add_argument('-p', '--port', { help: 'Server Port (default: 8000)', default: 8000 })
@@ -31,12 +31,12 @@ if (require.main == module) {
     parser.add_argument('--key', { help: 'SSL Key (required for HTTPS usage)' })
     parser.add_argument('--cert', { help: 'SSL Certificate (required for HTTPS usage' })
     parser.add_argument('--import', { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'store_true' })
-    var args = parser.parse_args()
+    const args = parser.parse_args()
 
     // Create thumb directory if it doesn't exist
     if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR)
 
-    startServer(args.auth)
+    startServer(args)
 }
 
 // Set HTTPS credentials
@@ -52,7 +52,7 @@ function readCredentials({ key, cert }) {
     return { key, cert }
 }
 
-async function startServer(authCode) {
+async function startServer({ url, port, auth: authCode, key, cert }) {
     const app = express()
     app.use(fileUpload())
 
@@ -73,23 +73,22 @@ async function startServer(authCode) {
         driver: sqlite3.Database
     })
 
-    app.use(function(req, res, next) {
+    app.use((req, res, next) => {
         const origin = req.get('origin')
-        res.header("Access-Control-Allow-Origin", CORS_WHITE_LIST.includes(origin) ? origin : args.url)
-        res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")
-        res.header("Cache-Control", "no-cache")
+        res.header('Access-Control-Allow-Origin', CORS_WHITE_LIST.includes(origin) ? origin : url)
+        res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept')
+        res.header('Cache-Control', 'no-cache')
         next()
     })
 
     // Upload new photo
-    app.post('/add/', async (req, res, next) => {
-
+    app.post('/add/', async (req, res) => {
         // Make sure request is authenticated
         try {
-            if (!req.headers.authorization) throw 'No credentials provided'
-            let hash = req.headers.authorization.replace('Bearer ', '')
-            let result = await bcrypt.compare(authCode, hash)
-            if (!result) throw 'Incorrect credentials'
+            if (!req.headers.authorization) throw new Error('No credentials provided')
+            const hash = req.headers.authorization.replace('Bearer ', '')
+            const result = await bcrypt.compare(authCode, hash)
+            if (!result) throw new Error('Incorrect credentials')
         }
         catch(e) {
             console.warn(`Auth failure for request from ${req.ip}: ${e}`)
@@ -103,16 +102,15 @@ async function startServer(authCode) {
 
         // Check parameter types
         let date = req.body.date
-        let photo = req.files.photo
         if (!date.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/) || !Date.parse(date)) {
-            return res.status(400).send("Invalid date!")
+            return res.status(400).send('Invalid date!')
         }
 
         // Construct file name
         date = new Date(date)
-        let timeZoneOffset = date.getTimezoneOffset()
-        let localDate = new Date(date.valueOf() - timeZoneOffset * 60 * 1000)
-        let fileName = `${STORAGE_DIR}/${localDate.toISOString().slice(0, 10)}-${date.valueOf() / 1000}.jpg`
+        const timeZoneOffset = date.getTimezoneOffset()
+        const localDate = new Date(date.valueOf() - timeZoneOffset * 60 * 1000)
+        const fileName = `${STORAGE_DIR}/${localDate.toISOString().slice(0, 10)}-${date.valueOf() / 1000}.jpg`
 
         // Write photo
         try {
@@ -120,7 +118,7 @@ async function startServer(authCode) {
             await addEntry(db, path.basename(fileName))
         }
         catch(e) {
-            return res.status(500).send(err)
+            return res.status(500).send(e.message)
         }
 
         console.info(`Added photo for ${localDate.toISOString().slice(0, 10)}: ${fileName}`)
@@ -129,42 +127,42 @@ async function startServer(authCode) {
 
     // Query photos
     app.get('/q/:page', async (req, res) => {
-        let total = (await db.get(SQL`SELECT COUNT(*) AS total FROM Photo`)).total
-        let page = req.params.page ? parseInt(req.params.page) : 1
+        const total = (await db.get(SQL`SELECT COUNT(*) AS total FROM Photo`)).total
+        const page = req.params.page ? parseInt(req.params.page) : 1
         // Don't exceed max posts
-        let offset = Math.max(0, Math.min(total - POSTS_PER_PAGE, (page - 1) * POSTS_PER_PAGE))
-        let photos = await db.all(SQL`SELECT * FROM Photo ORDER BY timestamp DESC LIMIT ${offset}, ${POSTS_PER_PAGE}`)
-        let next = offset + POSTS_PER_PAGE < total ? page + 1 : null
-        let prev = page > 1 ? page - 1 : null
-        res.json({next, photos, prev})
+        const offset = Math.max(0, Math.min(total - POSTS_PER_PAGE, (page - 1) * POSTS_PER_PAGE))
+        const photos = await db.all(SQL`SELECT * FROM Photo ORDER BY timestamp DESC LIMIT ${offset}, ${POSTS_PER_PAGE}`)
+        const next = offset + POSTS_PER_PAGE < total ? page + 1 : null
+        const prev = page > 1 ? page - 1 : null
+        res.json({ next, photos, prev })
     })
 
-    let httpsCredentials = readCredentials(args)
-    let scheme = httpsCredentials ? 'https' : 'http'
-    let server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
-    server.listen(args.port, (s) => {
-        let addr = server.address()
+    const httpsCredentials = readCredentials({ key, cert })
+    const scheme = httpsCredentials ? 'https' : 'http'
+    const server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
+    server.listen(port, () => {
+        const addr = server.address()
         console.info(`--- Picorama Server Active at ${scheme}://${addr.address}:${addr.port} ---`)
     })
 }
 
 async function addEntry(db, fileName) {
     // Parse date and timestamp
-    let parts = fileName.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))\.jpg$/)
+    const parts = fileName.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))\.jpg$/)
     if (!parts) {
-        throw 'No date found in filename'
+        throw new Error('No date found in filename')
     }
     if (!Date.parse(parts[1])) {
-        throw `Date ${parts[1]} is invalid`
+        throw new Error(`Date ${parts[1]} is invalid`)
     }
 
-    let day = new Date(parts[1])
-    let timestamp = parts[3] ? new Date(parseInt(parts[3]) * 1000) : day
-    let name = fileName.slice(0, -4)
+    const day = new Date(parts[1])
+    const timestamp = parts[3] ? new Date(parseInt(parts[3]) * 1000) : day
+    const name = fileName.slice(0, -4)
 
     // Open file and create thumb
-    let image = sharp(path.join(STORAGE_DIR, fileName)).rotate()
-    let buffer = await image.toBuffer()
+    const image = sharp(path.join(STORAGE_DIR, fileName)).rotate()
+    const buffer = await image.toBuffer()
     await image
         .resize(1280)
         .toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-1280.jpg')))
@@ -173,9 +171,9 @@ async function addEntry(db, fileName) {
         .toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-800.jpg')))
 
     // Get color palette
-    let palette = await colors(buffer, 'image/jpg')
-    let dominantHex = palette[0].hex()
-    let contrastColor = palette[0].hsl()[2] > 0.5 ? '#000000' : '#ffffff'
+    const palette = await colors(buffer, 'image/jpg')
+    const dominantHex = palette[0].hex()
+    const contrastColor = palette[0].hsl()[2] > 0.5 ? '#000000' : '#ffffff'
 
     // Store in database
     await db.run(SQL`INSERT INTO Photo (name, day, timestamp, color, contrast) VALUES (${name}, ${day}, ${timestamp}, ${dominantHex}, ${contrastColor})`)
