@@ -19,28 +19,25 @@
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            slide: 'slide-left',
-            title: 'Picorama'
-        }
-    },
-    watch: {
-        $route(to, from) {
-            if (from.path === to.path) {
-                this.slide = ''
-                return
-            }
-            if (!to.params.page) {
-                this.slide = 'slide-left'
-                return
-            }
-            this.slide = parseInt(to.params.page) < parseInt(from.params.page) ? 'slide-left' : 'slide-right'
-        }
+<script setup>
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
+const title = 'Picorama'
+
+const slide = ref('')
+const route = useRoute()
+watch(() => ({ name: route.name, page: route.params.page }), (to, from) => {
+    if (!from.name) {
+        slide.value = ''
+        return
     }
-}
+    if (!to.page) {
+        slide.value = 'slide-left'
+        return
+    }
+    slide.value = parseInt(to.page) < parseInt(from.page) ? 'slide-left' : 'slide-right'
+})
 </script>
 
 <style lang="sass">

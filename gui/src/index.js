@@ -10,10 +10,10 @@ const app = createApp(App)
 
 // Create routes
 const routes = [
-    { path: '/', component: IndexPage, children: [
-        { name: 'page', path: '/page/:page', component: IndexPage }
-    ] },
+    { path: '/', component: IndexPage, name: 'home' },
+    { path: '/page/:page([0-9]+)?', component: IndexPage, name: 'page' },
     { path: '/add', component: UploadPage },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 
 // Initialize router

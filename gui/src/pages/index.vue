@@ -69,6 +69,7 @@ export default {
     },
     methods: {
         fetchData(page = 1) {
+            page = page || 1
             fetch(`${API_URL}/q/${page}`)
                 .then(res => res.json())
                 .then(res => {
