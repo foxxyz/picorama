@@ -21,7 +21,7 @@
 </template>
 
 <script>
-const API_URL = `${window.location.protocol}//${window.location.hostname}${PRODUCTION ? '/api' : ':8000'}`
+const API_URL = `${window.location.protocol}//${window.location.hostname}${import.meta.env.PROD ? '/api' : ':8000'}`
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default {
