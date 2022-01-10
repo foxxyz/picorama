@@ -19,7 +19,7 @@ const THUMB_DIR = './thumbs'
 const DATABASE_FILE = './db.sqlite'
 const POSTS_PER_PAGE = 7
 // Allow localhost for development
-const CORS_WHITE_LIST = ['http://localhost:8080']
+const CORS_WHITE_LIST = ['http://localhost:3000']
 
 if (require.main === module) {
     // Parse arguments
@@ -76,7 +76,7 @@ async function startServer({ url, port, auth: authCode, key, cert }) {
     app.use((req, res, next) => {
         const origin = req.get('origin')
         res.header('Access-Control-Allow-Origin', CORS_WHITE_LIST.includes(origin) ? origin : url)
-        res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept')
+        res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization')
         res.header('Cache-Control', 'no-cache')
         next()
     })

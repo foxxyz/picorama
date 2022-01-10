@@ -35,6 +35,15 @@
                     required="true"
                 >
             </div>
+            <div>
+                <label>Auth Code</label>
+                <input
+                    name="auth"
+                    required="true"
+                    placeholder="Auth Code"
+                    v-model="authCode"
+                >
+            </div>
             <button
                 type="submit"
                 :disabled="loading"
@@ -47,6 +56,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { genSalt, hash } from 'bcryptjs'
 
 const API_URL = 'http://localhost:8000'
 const MINUTE = 60000
@@ -74,25 +84,39 @@ function fileAdded(e) {
 }
 
 let statusTimeout
-function save() {
+const authCode = ref('')
+async function save() {
     clearTimeout(statusTimeout)
     status.active = false
     loading.value = true
-    const formData = new FormData()
-    const xhr = new XMLHttpRequest()
-    formData.append('date', photoDate.value.toISOString().slice(0, -8))
-    formData.append('photo', file.value, file.value.name)
-    xhr.open('POST', `http://${window.location.hostname}:8000/add/`, true)
-    xhr.addEventListener('readystatechange', uploaded.bind(undefined, xhr))
-    xhr.send(formData)
-}
-function uploaded(xhr) {
-    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === STATUS_OK) {
-        loading.value = false
+
+    // Set data
+    const body = new FormData()
+    body.append('date', photoDate.value.toISOString().slice(0, -8))
+    body.append('photo', file.value, file.value.name)
+
+    // Hash auth code
+    const salt = await genSalt(10)
+    const token = await hash(authCode.value, salt)
+
+    const res = await fetch(`http://${window.location.hostname}:8000/add/`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        body
+    })
+
+    loading.value = false
+    if (res.status === STATUS_OK) {
         status.message = `Photo added for ${photoDate.value.toISOString().slice(0, 10)}`
-        status.active = true
-        statusTimeout = setTimeout(clearStatus, 5000)
     }
+    else {
+        status.message = `Unable to save! (Status: ${res.status})`
+    }
+    status.active = true
+    statusTimeout = setTimeout(clearStatus, 5000)
 }
 </script>
 
