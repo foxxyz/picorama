@@ -4,4 +4,3 @@ dist
 node_modules
 *.log
 *.sqlite
-package-lock.json
