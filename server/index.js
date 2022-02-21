@@ -125,7 +125,7 @@ async function startServer({ url, port, auth: authCode, key, cert }) {
         res.send('Done')
     })
 
-    // Query photos
+    // Query by page
     app.get('/q/:page', async (req, res) => {
         const total = (await db.get(SQL`SELECT COUNT(*) AS total FROM Photo`)).total
         const page = req.params.page ? parseInt(req.params.page) : 1
@@ -135,6 +135,14 @@ async function startServer({ url, port, auth: authCode, key, cert }) {
         const next = offset + POSTS_PER_PAGE < total ? page + 1 : null
         const prev = page > 1 ? page - 1 : null
         res.json({ next, photos, prev })
+    })
+
+    // Query by day of year
+    app.get('/history/:dayNum', async (req, res) => {
+        const { dayNum } = req.params
+        const prefixed = dayNum.padStart(3, '0')
+        const photos = await db.all(SQL`SELECT *, strftime('%j', datetime(day/1000, 'unixepoch')) AS dayNum FROM Photo WHERE dayNum = ${prefixed} ORDER BY timestamp DESC LIMIT 10`)
+        res.json({ photos })
     })
 
     const httpsCredentials = readCredentials({ key, cert })

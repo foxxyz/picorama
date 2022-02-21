@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import App from './app.vue'
+import DayHistoryPage from './pages/day-history.vue'
 import IndexPage from './pages/index.vue'
 import UploadPage from './pages/upload.vue'
 
@@ -13,6 +14,7 @@ const routes = [
     { path: '/', component: IndexPage, name: 'home' },
     { path: '/page/:page([0-9]+)?', component: IndexPage, name: 'page' },
     { path: '/add', component: UploadPage },
+    { path: '/history/:day([0-9]+)?', component: DayHistoryPage },
     { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

@@ -86,7 +86,6 @@ async function fetchData(page = 1) {
 const route = useRoute()
 fetchData(route.params.page)
 
-
 // Set changed photo on scroll
 const active = ref(null)
 function setSelected() {
@@ -178,18 +177,6 @@ main.index
             pointer-events: all
         .next a
             justify-content: flex-end
-
-@keyframes cycle
-    0%
-        background: #7ABF72cc
-    25%
-        background: #F4C65Acc
-    50%
-        background: #FC825Dcc
-    75%
-        background: #78BDC9cc
-    100%
-        background: #7ABF72cc
 
 .fade-enter-active, .fade-leave-active
   transition: opacity .5s

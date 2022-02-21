@@ -132,4 +132,17 @@ input
 
 .slide-left-leave-to, .slide-right-enter-from
     transform: translate(100vw, 0)
+
+@keyframes cycle
+    0%
+        background: #7ABF72cc
+    25%
+        background: #F4C65Acc
+    50%
+        background: #FC825Dcc
+    75%
+        background: #78BDC9cc
+    100%
+        background: #7ABF72cc
+
 </style>
