@@ -70,8 +70,8 @@ input
     font-family: "Prompt"
     > h1
         position: fixed
-        right: 1em
-        top: 1em
+        right: 1rem
+        top: 1rem
         text-transform: uppercase
         font-size: .6em
         z-index: 5
