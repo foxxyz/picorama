@@ -54,9 +54,20 @@ async function fetchData(dayOfYear) {
 // Grab updated photos
 const route = useRoute()
 
+// Allow date override
 let today = new Date()
 if (route.params.day) today = setDayOfYear(today, route.params.day)
 fetchData(getDayOfYear(today))
+
+// Check every minute if we've passed the day boundary and reload if so
+let lastCheck = new Date()
+setInterval(() => {
+    const now = new Date()
+    if (lastCheck.getDate() !== now.getDate()) {
+        document.location.reload()
+    }
+    lastCheck = now
+}, 60 * 1000)
 </script>
 
 <style lang="sass">
