@@ -7,9 +7,9 @@
             <li
                 v-for="photo in photos"
                 :key="photo.id"
-                :style="{backgroundColor: photo.color, color: photo.contrast}"
+                :style="{ backgroundColor: photo.color, color: photo.color }"
             >
-                <span class="year">
+                <span class="year" :style="{ textShadow: `2px 2px 0 ${photo.contrast}` }">
                     {{ photo.year }}
                 </span>
                 <div
@@ -68,25 +68,21 @@ main.day-history
         text-transform: uppercase
     img
         display: block
-        width: 14em
+        width: 100%
     li
-        display: flex
-        padding: 1rem
-        justify-content: space-between
-        align-items: center
-        width: 28em
+        padding: .5rem
         flex-grow: 1
+        width: 20em
+        position: relative
     ol
         display: flex
         flex-wrap: wrap
-    .image
-        //border: solid .5em
+        list-style: none
     .year
-        font-size: 4em
+        font-size: 3em
+        position: absolute
         font-weight: bold
-        display: flex
-        justify-content: center
-        align-items: center
-        flex-grow: 1
-        max-width: 14em
+        bottom: 0
+        right: .5em
+        opacity: .3
 </style>
