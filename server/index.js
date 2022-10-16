@@ -23,6 +23,7 @@ const CORS_WHITE_LIST = ['http://localhost:3000']
 
 if (require.main === module) {
     // Parse arguments
+    // eslint-disable-next-line camelcase
     const parser = new ArgumentParser({ add_help: true, description: packageInfo.description })
     parser.add_argument('-v', '--version', { action: 'version', version: packageInfo.version })
     parser.add_argument('-u', '--url', { help: 'Server URL', default: '*' })
@@ -45,8 +46,7 @@ function readCredentials({ key, cert }) {
     try {
         key = fs.readFileSync(key)
         cert = fs.readFileSync(cert)
-    }
-    catch(e) {
+    } catch(e) {
         console.error(`Unable to read SSL key/certificate: ${e}. Falling back to HTTP...`)
     }
     return { key, cert }
@@ -89,8 +89,7 @@ async function startServer({ url, port, auth: authCode, key, cert }) {
             const hash = req.headers.authorization.replace('Bearer ', '')
             const result = await bcrypt.compare(authCode, hash)
             if (!result) throw new Error('Incorrect credentials')
-        }
-        catch(e) {
+        } catch(e) {
             console.warn(`Auth failure for request from ${req.ip}: ${e}`)
             return res.status(403).send('Authentication Failure')
         }
@@ -116,8 +115,7 @@ async function startServer({ url, port, auth: authCode, key, cert }) {
         try {
             await req.files.photo.mv(fileName)
             await addEntry(db, path.basename(fileName))
-        }
-        catch(e) {
+        } catch(e) {
             return res.status(500).send(e.message)
         }
 

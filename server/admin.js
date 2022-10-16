@@ -36,8 +36,7 @@ async function importExisting() {
         try {
             console.info(`Importing ${photo}...`)
             await addEntry(db, photo)
-        }
-        catch(e) {
+        } catch(e) {
             console.warn(`Skipping ${photo} - ${e}`)
         }
     }
