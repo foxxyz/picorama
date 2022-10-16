@@ -1,10 +1,10 @@
 Picorama GUI
-========================
+=================
 
 Requirements
 ------------
 
-### Node.js 16+
+### Node.js 18+
 
  * OSX: `brew install node` using [Homebrew](http://brew.sh/)
  * Linux: `apt install nodejs` ([see Ubuntu/Debian specific instructions](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions)) or `pacman -S nodejs` (Arch Linux)
@@ -15,7 +15,7 @@ Installation
 
 1. Clone repo
 2. Install dependencies: `npm install`
-3. Verify it runs: `npm run dev`, then check [http://localhost:8080](http://localhost:8080)
+3. Verify it runs: `npm run dev`, then check [http://localhost:5173](http://localhost:5173)
 
 Deployment
 ----------
@@ -24,7 +24,7 @@ Deployment
  * Set up a run script that can be executed as a daemon. For example:
 
 ```
-./index.js --url https://yoursite.url --auth 55555 -p 8080
+./server/index.js --url https://yoursite.url --auth 55555 -p 8080
 ```
 
 Add this in your server directory as `run.sh`.
