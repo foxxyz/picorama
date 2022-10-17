@@ -1,6 +1,6 @@
 {
   "name": "picorama-server",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Picorama Server",
   "main": "index.js",
   "scripts": {
