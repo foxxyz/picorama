@@ -2,6 +2,7 @@
 const { ArgumentParser } = require('argparse')
 const fs = require('fs')
 const sqlite = require('sqlite')
+const sqlite3 = require('sqlite3')
 const SQL = require('sql-template-strings')
 const packageInfo = require('./package.json')
 
@@ -11,13 +12,18 @@ const STORAGE_DIR = './media'
 const DATABASE_FILE = './db.sqlite'
 
 // Parse arguments
-const parser = new ArgumentParser({ version: packageInfo.version, addHelp: true, description: 'Picorama Administration Tool' })
-parser.addArgument(['--import'], { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'storeTrue' })
-parser.addArgument(['--delete'], { help: 'Delete entries for a particular day (I.E. "2018-06-17")' })
-const args = parser.parseArgs()
+// eslint-disable-next-line camelcase
+const parser = new ArgumentParser({ add_help: true, description: 'Picorama Administration Tool' })
+parser.add_argument('-v', '--version', { action: 'version', version: packageInfo.version })
+parser.add_argument('--import', { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'store_true' })
+parser.add_argument('--delete', { help: 'Delete entries for a particular day (I.E. "2018-06-17")' })
+const args = parser.parse_args()
 
 async function deleteEntry(day) {
-    const db = await sqlite.open(DATABASE_FILE)
+    const db = await sqlite.open({
+        filename: DATABASE_FILE,
+        driver: sqlite3.Database
+    })
     console.info(`Deleting photos for date ${day}...`)
     day = new Date(day)
     const count = (await db.get(SQL`SELECT COUNT(*) as count FROM Photo WHERE day = ${day}`)).count
@@ -30,7 +36,10 @@ async function deleteEntry(day) {
 }
 
 async function importExisting() {
-    const db = await sqlite.open(DATABASE_FILE)
+    const db = await sqlite.open({
+        filename: DATABASE_FILE,
+        driver: sqlite3.Database
+    })
     await db.migrate({ force: 'last' })
     for(const photo of fs.readdirSync(STORAGE_DIR)) {
         try {
