@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "npm run build && rsync -r --delete --verbose --exclude 'photos' dist/. picorama:/home/public",
+    "deploy": "npm run build && rsync -r --delete --verbose --exclude 'photos' dist/. picorama:/home/public && scp deploy/.* picorama:/home/public",
     "lint": "eslint --ext .js,.vue src"
   },
   "author": "Ivo Janssen",
