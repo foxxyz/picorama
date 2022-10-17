@@ -4,6 +4,7 @@
   "description": "Picorama Server",
   "main": "index.js",
   "scripts": {
+    "deploy": "scp -r *.js *.json migrations picorama:/home/protected/cv/server/ && ssh picorama \"cd /home/protected/cv/server && npm install\"",
     "pull": "rsync -av picorama:/home/protected/cv/server/media/ media",
     "lint": "eslint ."
   },
@@ -15,7 +16,7 @@
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
     "get-image-colors": "^4.0.1",
-    "sharp": "^0.31.1",
+    "sharp": "^0.30.7",
     "sql-template-strings": "^2.2.2",
     "sqlite": "^4.1.2",
     "sqlite3": "^5.1.2"
