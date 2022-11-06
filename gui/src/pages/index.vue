@@ -1,5 +1,9 @@
 <template>
     <main class="index">
+        <div class="empty" v-if="!photos.length">
+            <span>👀</span>
+            Waiting for your first photo...
+        </div>
         <ol class="posts">
             <li
                 v-for="photo in photos"
@@ -177,6 +181,16 @@ main.index
             pointer-events: all
         .next a
             justify-content: flex-end
+
+    .empty
+        width: 100%
+        position: absolute
+        top: calc(50% - 4em)
+        text-align: center
+        color: #444
+        span
+            display: block
+            font-size: 8em
 
 .fade-enter-active, .fade-leave-active
   transition: opacity .5s
