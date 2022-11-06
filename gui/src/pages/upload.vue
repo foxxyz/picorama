@@ -111,8 +111,7 @@ async function save() {
     loading.value = false
     if (res.status === STATUS_OK) {
         status.message = `Photo added for ${photoDate.value.toISOString().slice(0, 10)}`
-    }
-    else {
+    } else {
         status.message = `Unable to save! (Status: ${res.status})`
     }
     status.active = true

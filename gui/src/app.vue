@@ -26,8 +26,8 @@ import { useRoute } from 'vue-router'
 const title = 'Picorama'
 
 const slide = ref('')
-const route = useRoute()
-watch(() => ({ name: route.name, page: route.params.page }), (to, from) => {
+const currentRoute = useRoute()
+watch(() => ({ name: currentRoute.name, page: currentRoute.params.page }), (to, from) => {
     if (!from.name) {
         slide.value = ''
         return
