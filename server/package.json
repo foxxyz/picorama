@@ -4,7 +4,6 @@
   "description": "Picorama Server",
   "main": "index.js",
   "scripts": {
-    "deploy": "scp -r *.js *.json migrations picorama:/home/protected/cv/server/ && ssh picorama \"cd /home/protected/cv/server && npm install\"",
     "pull": "rsync -av picorama:/home/protected/cv/server/media/ media",
     "lint": "eslint ."
   },
