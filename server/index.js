@@ -34,8 +34,9 @@ if (require.main === module) {
     parser.add_argument('--import', { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'store_true' })
     const args = parser.parse_args()
 
-    // Create thumb directory if it doesn't exist
+    // Create meda/thumb directory if it doesn't exist
     if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR)
+    if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR)
 
     startServer(args)
 }
@@ -116,6 +117,7 @@ async function startServer({ url, port, auth: authCode, key, cert }) {
             await req.files.photo.mv(fileName)
             await addEntry(db, path.basename(fileName))
         } catch(e) {
+            console.error(e)
             return res.status(500).send(e.message)
         }
 
