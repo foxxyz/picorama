@@ -42,6 +42,6 @@ echo "> Installing dependencies..."
 ssh $TARGET "cd $DEPLOY_DIR/protected/server && npm install --omit=dev"
 
 # Creating symbolic link to server thumbs
-ssh $TARGET "ln -s /home/protected/server/thumbs /home/public/photos"
+ssh $TARGET "ln -s ../protected/server/thumbs /home/public/photos"
 
 echo "> Done!"
