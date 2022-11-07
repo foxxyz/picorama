@@ -31,7 +31,8 @@ echo "> Compiling GUI..."
 cd gui
 npm run build -- --mode $BUILD_MODE
 echo "> Copying GUI Artifacts..."
-rsync -avh dist deploy $TARGET:$DEPLOY_DIR/public
+rsync -avh dist $TARGET:$DEPLOY_DIR/public
+scp deploy/* $TARGET:$DEPLOY_DIR/public
 cd ..
 
 # Server Deploy
