@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { ArgumentParser } = require('argparse')
+const { ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS } = require('argparse')
 const bcrypt = require('bcrypt')
 const colors = require('get-image-colors')
 const express = require('express')
@@ -24,13 +24,13 @@ const CORS_WHITE_LIST = ['http://localhost:3000']
 if (require.main === module) {
     // Parse arguments
     // eslint-disable-next-line camelcase
-    const parser = new ArgumentParser({ add_help: true, description: packageInfo.description })
+    const parser = new ArgumentParser({ add_help: true, description: packageInfo.description, formatter_class: ArgumentDefaultsHelpFormatter })
     parser.add_argument('-v', '--version', { action: 'version', version: packageInfo.version })
     parser.add_argument('-u', '--url', { help: 'Server URL', default: '*' })
-    parser.add_argument('-p', '--port', { help: 'Server Port (default: 8000)', default: 8000 })
-    parser.add_argument('-a', '--auth', { help: 'Authentication code' })
-    parser.add_argument('--key', { help: 'SSL Key (required for HTTPS usage)' })
-    parser.add_argument('--cert', { help: 'SSL Certificate (required for HTTPS usage' })
+    parser.add_argument('-p', '--port', { help: 'Server Port', default: 8000 })
+    parser.add_argument('-a', '--auth', { help: 'Authentication code', default: SUPPRESS })
+    parser.add_argument('--key', { help: 'SSL Key (required for HTTPS usage)', default: SUPPRESS })
+    parser.add_argument('--cert', { help: 'SSL Certificate (required for HTTPS usage', default: SUPPRESS })
     parser.add_argument('--import', { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'store_true' })
     const args = parser.parse_args()
 
