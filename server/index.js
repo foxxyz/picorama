@@ -172,10 +172,10 @@ async function addEntry(db, fileName) {
     const image = sharp(path.join(STORAGE_DIR, fileName)).rotate()
     const buffer = await image.toBuffer()
     await image
-        .resize(1280)
+        .resize(1280, 960)
         .toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-1280.jpg')))
     await image
-        .resize(800)
+        .resize(800, 600)
         .toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-800.jpg')))
 
     // Get color palette
