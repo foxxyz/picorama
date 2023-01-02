@@ -4,6 +4,21 @@
             <span>👀</span>
             Waiting for your first photo...
         </div>
+        <nav>
+            <div class="prev" v-if="prev" ref="prevLink">
+                <router-link
+                    :to="{name: 'page', params: { page: prev }}"
+                    custom
+                    v-slot="{ href }"
+                >
+                    <a :href="href" @click.prevent="fetchData(prev, -1)">
+                        <span v-for="i in 3" :key="i">▲</span>
+                        <span class="label">Newer</span>
+                        <span v-for="i in 3" :key="i">▲</span>
+                    </a>
+                </router-link>
+            </div>
+        </nav>
         <ol class="posts">
             <li
                 v-for="photo in photos"
@@ -39,19 +54,6 @@
             </li>
         </ol>
         <nav>
-            <div class="prev" v-if="prev">
-                <router-link
-                    :to="{name: 'page', params: { page: prev }}"
-                    custom
-                    v-slot="{ href }"
-                >
-                    <a :href="href" @click.prevent="fetchData(prev, -1)">
-                        <span v-for="i in 3" :key="i">▲</span>
-                        <span class="label">Newer</span>
-                        <span v-for="i in 3" :key="i">▲</span>
-                    </a>
-                </router-link>
-            </div>
             <div class="next" v-if="next">
                 <router-link
                     :to="{name: 'page', params: { page: next }}"
@@ -79,6 +81,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const next = ref(null)
 const photos = ref([])
 const prev = ref(null)
+const prevLink = ref()
 
 function transform(p) {
     const date = new Date(p.day)
@@ -102,13 +105,20 @@ async function fetchData(page = 1, append = 0) {
         startingPage = page
         photos.value = newPhotos.concat(photos.value)
         prev.value = data.prev
+        const scrollHeight = window.innerHeight * newPhotos.length - prevLink.value.getBoundingClientRect().height
         await nextTick()
         // Scroll to where the user was to make it appear that the photos have loaded in above
-        window.scrollTo(0, window.innerHeight * newPhotos.length - 100)
+        window.scrollTo(0, scrollHeight)
     } else {
         photos.value = newPhotos
         next.value = data.next
         prev.value = data.prev
+        if (data.prev) {
+            // Browsers don't allow `scrollTo` immediately, so wait a small amount
+            await new Promise(res => setTimeout(res, 20))
+            // Hide the previous link on load, but visible when scrolling up
+            window.scrollTo(0, prevLink.value.getBoundingClientRect().height)
+        }
     }
     setSelected()
 }
@@ -209,14 +219,6 @@ main.index
                     transform: scale(1.2)
         > div
             width: 100%
-            &.next
-                a
-                    background: black
-                a:after, a:before
-                    content: ''
-            &.prev
-                position: absolute
-                top: 0
         span
             animation: fadecycle 1.4s infinite, colorcycle 1s infinite
             opacity: 0
@@ -239,12 +241,6 @@ main.index
         span
             display: block
             font-size: 8em
-
-.fade-enter-active, .fade-leave-active
-  transition: opacity .5s
-
-.fade-enter, .fade-leave-to
-  opacity: 0
 
 @keyframes colorcycle
     0%
