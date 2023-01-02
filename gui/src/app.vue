@@ -1,43 +1,21 @@
 <template>
     <div class="app">
         <h1>
-            <router-link to="/">
-                <span
-                    v-for="l in title"
-                    :key="l"
-                >{{ l }}</span>
+            <router-link to="/" custom v-slot="{ href }">
+                <a :href="href">
+                    <span
+                        v-for="l in title"
+                        :key="l"
+                    >{{ l }}</span>
+                </a>
             </router-link>
         </h1>
-        <router-view v-slot="{ Component, route }">
-            <transition :name="slide">
-                <component
-                    :is="Component"
-                    :key="route.path"
-                />
-            </transition>
-        </router-view>
+        <router-view />
     </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-
 const title = 'Picorama'
-
-const slide = ref('')
-const currentRoute = useRoute()
-watch(() => ({ name: currentRoute.name, page: currentRoute.params.page }), (to, from) => {
-    if (!from.name) {
-        slide.value = ''
-        return
-    }
-    if (!to.page) {
-        slide.value = 'slide-left'
-        return
-    }
-    slide.value = parseInt(to.page) < parseInt(from.page) ? 'slide-left' : 'slide-right'
-})
 </script>
 
 <style lang="sass">
@@ -122,16 +100,6 @@ input
             &:hover
                 filter: contrast(3)
                 transition: none
-
-.slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active
-    position: absolute
-    transition: transform .5s ease-in-out
-
-.slide-left-enter-from, .slide-right-leave-to
-    transform: translate(-100vw, 0)
-
-.slide-left-leave-to, .slide-right-enter-from
-    transform: translate(100vw, 0)
 
 @keyframes cycle
     0%

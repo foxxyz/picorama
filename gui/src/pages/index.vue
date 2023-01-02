@@ -8,6 +8,7 @@
             <li
                 v-for="photo in photos"
                 :key="photo.id"
+                :id="`p${photo.id}`"
                 :style="{backgroundColor: photo.color}"
             >
                 <div
@@ -38,20 +39,30 @@
             </li>
         </ol>
         <nav>
-            <div class="prev">
+            <div class="prev" v-if="prev">
                 <router-link
-                    v-if="prev"
                     :to="{name: 'page', params: { page: prev }}"
+                    custom
+                    v-slot="{ href }"
                 >
-                    Prev
+                    <a :href="href" @click.prevent="fetchData(prev, -1)">
+                        <span v-for="i in 3" :key="i">▲</span>
+                        <span class="label">Newer</span>
+                        <span v-for="i in 3" :key="i">▲</span>
+                    </a>
                 </router-link>
             </div>
-            <div class="next">
+            <div class="next" v-if="next">
                 <router-link
-                    v-if="next"
                     :to="{name: 'page', params: { page: next }}"
+                    custom
+                    v-slot="{ href }"
                 >
-                    Next
+                    <a :href="href" @click.prevent="fetchData(next, 1)">
+                        <span v-for="i in 3" :key="i">▼</span>
+                        <span class="label">Older</span>
+                        <span v-for="i in 3" :key="i">▼</span>
+                    </a>
                 </router-link>
             </div>
         </nav>
@@ -59,8 +70,8 @@
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const API_URL = `${window.location.protocol}//${window.location.hostname}${import.meta.env.PROD ? '/api' : ':8000'}`
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -68,32 +79,52 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const next = ref(null)
 const photos = ref([])
 const prev = ref(null)
-async function fetchData(page = 1) {
-    page = page || 1
+
+function transform(p) {
+    const date = new Date(p.day)
+    p.day = DAYS[date.getUTCDay()]
+    p.timestamp = new Date(p.timestamp)
+    p.date = `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')}`
+    p.year = String(date.getUTCFullYear())
+    p.uri = `/photos/${p.name}-800.jpg`
+    p.fullURI = `/photos/${p.name}-1280.jpg`
+    return p
+}
+
+async function fetchData(page = 1, append = 0) {
     const response = await fetch(`${API_URL}/q/${page}`)
     const data = await response.json()
-    next.value = data.next
-    prev.value = data.prev
-    photos.value = data.photos.map(p => {
-        const date = new Date(p.day)
-        p.day = DAYS[date.getUTCDay()]
-        p.timestamp = new Date(p.timestamp)
-        p.date = `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')}`
-        p.year = String(date.getUTCFullYear())
-        p.uri = `/photos/${p.name}-800.jpg`
-        p.fullURI = `/photos/${p.name}-1280.jpg`
-        return p
-    })
+    const newPhotos = data.photos.map(transform)
+    if (append > 0) {
+        photos.value = photos.value.concat(newPhotos)
+        next.value = data.next
+    } else if (append < 0) {
+        startingPage = page
+        photos.value = newPhotos.concat(photos.value)
+        prev.value = data.prev
+        await nextTick()
+        // Scroll to where the user was to make it appear that the photos have loaded in above
+        window.scrollTo(0, window.innerHeight * newPhotos.length - 100)
+    } else {
+        photos.value = newPhotos
+        next.value = data.next
+        prev.value = data.prev
+    }
     setSelected()
 }
+
 // Grab updated photos
 const route = useRoute()
-fetchData(route.params.page)
+const router = useRouter()
+let startingPage = parseInt(route.params.page || 1)
+fetchData(startingPage)
+const activePage = ref(startingPage)
 
 // Set changed photo on scroll
 const active = ref(null)
 function setSelected() {
     active.value = Math.floor(window.scrollY / window.innerHeight)
+    activePage.value = startingPage + Math.floor(active.value / DAYS.length)
 }
 window.addEventListener('scroll', setSelected)
 onBeforeUnmount(() => {
@@ -106,11 +137,17 @@ watchEffect(() => {
     if (active.value === null) return
     chrome.setAttribute('content', photos.value[active.value].color)
 })
+// Update URL when moving between pages
+watch(activePage, page => {
+    router.replace({ name: 'page', params: { page } })
+})
 </script>
 
 <style lang="sass">
 main.index
     width: 100%
+    min-height: 100vh
+    position: relative
     .posts
         a
             width: 100%
@@ -151,36 +188,47 @@ main.index
                 text-align: right
                 margin-top: -.8em
     nav
-        position: fixed
-        top: 0
-        left: 0
-        height: 100%
-        width: 100%
-        display: flex
-        pointer-events: none
-        text-transform: uppercase
-        justify-content: space-between
         a
             color: inherit
             display: flex
-            align-items: flex-end
             text-decoration: none
             width: 100%
+            align-items: center
+            text-align: center
+            justify-content: center
             height: 100%
-            padding: 1em
+            padding: 2em
             transition: background .5s
             user-select: none
             -webkit-tap-highlight-color: transparent
             &:active
                 background-color: transparent
-            @media (min-aspect-ratio: 13/10)
-                &:hover
-                    background: rgba(255, 255, 255, .1)
-        div
-            width: 5em
-            pointer-events: all
-        .next a
-            justify-content: flex-end
+            &:hover
+                background: rgba(255, 255, 255, .1)
+                span
+                    transform: scale(1.2)
+        > div
+            width: 100%
+            &.next
+                a
+                    background: black
+                a:after, a:before
+                    content: ''
+            &.prev
+                position: absolute
+                top: 0
+        span
+            animation: fadecycle 1.4s infinite, colorcycle 1s infinite
+            opacity: 0
+            &:nth-child(2), &:nth-child(6)
+                animation-delay: .2s
+            &:nth-child(3), &:nth-child(5)
+                animation-delay: .4s
+        .label
+            font-size: 1em
+            opacity: 1
+            padding: 0 2em
+            animation: none
 
     .empty
         width: 100%
@@ -198,4 +246,21 @@ main.index
 .fade-enter, .fade-leave-to
   opacity: 0
 
+@keyframes colorcycle
+    0%
+        color: #7ABF72cc
+    25%
+        color: #F4C65Acc
+    50%
+        color: #FC825Dcc
+    75%
+        color: #78BDC9cc
+    100%
+        color: #7ABF72cc
+
+@keyframes fadecycle
+    10%
+        opacity: 1
+    30%
+        opacity: 0
 </style>
