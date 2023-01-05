@@ -38,4 +38,13 @@ describe('General', () => {
         const res = await request(app).get('/q/1/')
         expect(res.body.photos.length).toBe(7)
     })
+    it('Returns only remaining posts on the last page', async() => {
+        // 16 posts should only return 2 only the last post
+        const first = new Date('2020-08-20').getTime()
+        for(let i = 0; i < 16; i++) {
+            addEntry(db, first + i * DAY)
+        }
+        const res = await request(app).get('/q/3/')
+        expect(res.body.photos.length).toBe(2)
+    })
 })

@@ -83,7 +83,7 @@ function createApp({ authCode, db, url }) {
         const total = (await db.get(SQL`SELECT COUNT(*) AS total FROM Photo`)).total
         const page = req.params.page ? parseInt(req.params.page) : 1
         // Don't exceed max posts
-        const offset = Math.max(0, Math.min(total - POSTS_PER_PAGE, (page - 1) * POSTS_PER_PAGE))
+        const offset = Math.max(0, (page - 1) * POSTS_PER_PAGE)
         const photos = await db.all(SQL`SELECT * FROM Photo ORDER BY timestamp DESC LIMIT ${offset}, ${POSTS_PER_PAGE}`)
         const next = offset + POSTS_PER_PAGE < total ? page + 1 : null
         const prev = page > 1 ? page - 1 : null
