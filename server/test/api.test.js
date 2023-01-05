@@ -47,4 +47,16 @@ describe('General', () => {
         const res = await request(app).get('/q/3/')
         expect(res.body.photos.length).toBe(2)
     })
+    it('Returns the last valid previous page if querying past the amount present', async() => {
+        // 16 test posts
+        const first = new Date('2020-08-20').getTime()
+        for(let i = 0; i < 16; i++) {
+            addEntry(db, first + i * DAY)
+        }
+        // Querying page 10 should return page 3 as the last valid page
+        const res = await request(app).get('/q/10/')
+        expect(res.body.next).toBe(null)
+        expect(res.body.photos.length).toBe(0)
+        expect(res.body.prev).toBe(3)
+    })
 })
