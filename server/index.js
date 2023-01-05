@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 const { ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS } = require('argparse')
-const { createApp } = require('./app')
 const fs = require('fs')
 const http = require('http')
 const https = require('https')
+
+const { createApp } = require('./app')
+const { createDB } = require('./db')
 const packageInfo = require('./package.json')
 
+const DATABASE_FILE = './db.sqlite'
 const STORAGE_DIR = './media'
 const THUMB_DIR = './thumbs'
 
@@ -37,11 +40,16 @@ const args = parser.parse_args()
 if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR)
 if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR)
 
-const app = createApp(args)
-const httpsCredentials = readCredentials(args)
-const scheme = httpsCredentials ? 'https' : 'http'
-const server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
-server.listen(args.port, () => {
-    const addr = server.address()
-    console.info(`--- Picorama Server Active at ${scheme}://${addr.address}:${addr.port} ---`)
-})
+async function run() {
+    // Open database
+    const db = await createDB(DATABASE_FILE)
+    const app = createApp({ db, ...args })
+    const httpsCredentials = readCredentials(args)
+    const scheme = httpsCredentials ? 'https' : 'http'
+    const server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
+    server.listen(args.port, () => {
+        const addr = server.address()
+        console.info(`--- Picorama Server Active at ${scheme}://${addr.address}:${addr.port} ---`)
+    })
+}
+run()

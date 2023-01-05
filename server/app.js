@@ -4,18 +4,15 @@ const express = require('express')
 const fileUpload = require('express-fileupload')
 const path = require('path')
 const sharp = require('sharp')
-const sqlite = require('sqlite')
-const sqlite3 = require('sqlite3')
 const SQL = require('sql-template-strings')
 
 const STORAGE_DIR = './media'
 const THUMB_DIR = './thumbs'
-const DATABASE_FILE = './db.sqlite'
 const POSTS_PER_PAGE = 7
 // Allow localhost for development
 const CORS_WHITE_LIST = ['http://localhost:3000']
 
-async function createApp({ authCode, url } = {}) {
+function createApp({ authCode, db, url }) {
     const app = express()
     app.use(fileUpload())
 
@@ -29,12 +26,6 @@ async function createApp({ authCode, url } = {}) {
             console.warn(`No authentication code was passed or found in 'PICORAMA_AUTH_CODE'. Your randomly generated auth code is: ${authCode}`)
         }
     }
-
-    // Open database
-    const db = await sqlite.open({
-        filename: DATABASE_FILE,
-        driver: sqlite3.Database
-    })
 
     app.use((req, res, next) => {
         const origin = req.get('origin')

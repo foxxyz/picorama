@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 const { ArgumentParser } = require('argparse')
 const fs = require('fs')
-const sqlite = require('sqlite')
-const sqlite3 = require('sqlite3')
 const SQL = require('sql-template-strings')
 const packageInfo = require('./package.json')
 
 const { addEntry } = require('.')
+const { createDB } = require('../db')
 
 const STORAGE_DIR = './media'
 const DATABASE_FILE = './db.sqlite'
@@ -20,10 +19,8 @@ parser.add_argument('--delete', { help: 'Delete entries for a particular day (I.
 const args = parser.parse_args()
 
 async function deleteEntry(day) {
-    const db = await sqlite.open({
-        filename: DATABASE_FILE,
-        driver: sqlite3.Database
-    })
+    const db = await createDB(DATABASE_FILE)
+
     console.info(`Deleting photos for date ${day}...`)
     day = new Date(day)
     const count = (await db.get(SQL`SELECT COUNT(*) as count FROM Photo WHERE day = ${day}`)).count
@@ -36,10 +33,8 @@ async function deleteEntry(day) {
 }
 
 async function importExisting() {
-    const db = await sqlite.open({
-        filename: DATABASE_FILE,
-        driver: sqlite3.Database
-    })
+    const db = await createDB(DATABASE_FILE)
+
     await db.migrate({ force: 'last' })
     for(const photo of fs.readdirSync(STORAGE_DIR)) {
         try {
