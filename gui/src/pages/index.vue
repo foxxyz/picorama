@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
 const chrome = document.querySelector('meta[name="theme-color"]')
 watchEffect(() => {
     if (active.value === null) return
-    chrome.setAttribute('content', photos.value[active.value].color)
+    chrome.setAttribute('content', photos.value[active.value]?.color)
 })
 // Update URL when moving between pages
 watch(activePage, page => {
