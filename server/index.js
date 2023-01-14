@@ -43,7 +43,7 @@ if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR)
 async function run() {
     // Open database
     const db = await createDB(DATABASE_FILE)
-    const app = createApp({ db, ...args })
+    const app = createApp({ db, authCode: args.auth, ...args })
     const httpsCredentials = readCredentials(args)
     const scheme = httpsCredentials ? 'https' : 'http'
     const server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
