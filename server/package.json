@@ -1,5 +1,5 @@
 {
-  "name": "picorama-server",
+  "name": "@picorama/server",
   "version": "0.6.2",
   "description": "Picorama Server",
   "main": "index.js",
