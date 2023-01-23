@@ -54,13 +54,12 @@ input
         font-size: .6em
         z-index: 5
         color: #666
-        width: 14em
+        width: 10em
         a
             display: flex
-            justify-content: center
-            flex-wrap: wrap
-            perspective: 180px
+            justify-content: flex-end
             text-decoration: none
+            flex-wrap: wrap
         span
             color: white
             margin: .3em
@@ -69,34 +68,22 @@ input
             display: flex
             justify-content: center
             align-items: center
-            animation: cycle 2s infinite
+            animation: cycle 2s infinite, rotate 8s ease-out infinite
             animation-fill-mode: forwards
             transition: filter 2s
             user-select: none
-            &:nth-child(1), &:nth-child(5), &:nth-child(10)
+            &:nth-child(1), &:nth-child(5)
                 background: #F4C65Acc
-                animation-delay: 0
-            &:nth-child(2), &:nth-child(6), &:nth-child(9)
+                animation-delay: 0s, calc(random(6) / 6) + s
+            &:nth-child(2), &:nth-child(6)
                 background: #FC825Dcc
-                animation-delay: .5s
-            &:nth-child(3), &:nth-child(12), &:nth-child(8)
+                animation-delay: .5s, calc(random(6) / 6) + s
+            &:nth-child(3), &:nth-child(7)
                 background: #78BDC9cc
-                animation-delay: 1s
-            &:nth-child(4), &:nth-child(11), &:nth-child(7)
+                animation-delay: 1s, calc(random(6) / 6) + s
+            &:nth-child(4), &:nth-child(8)
                 background: #7ABF72cc
-                animation-delay: 1.5s
-            &:nth-child(6n + 1)
-                transform: translateZ(1em) translateX(.5em) rotateY(20deg)
-            &:nth-child(6n + 2)
-                transform: translateZ(.32em) translateX(.2em) rotateY(12deg)
-            &:nth-child(6n + 3)
-                transform: translateZ(.032em) translateX(.02em) rotateY(4deg)
-            &:nth-child(6n + 4)
-                transform: translateZ(.032em) translateX(-.02em) rotateY(-4deg)
-            &:nth-child(6n + 5)
-                transform: translateZ(.32em) translateX(-.2em) rotateY(-12deg)
-            &:nth-child(6n + 6)
-                transform: translateZ(1em) translateX(-.5em) rotateY(-20deg)
+                animation-delay: 1.5s, calc(random(6) / 6) + s
             &:hover
                 filter: contrast(3)
                 transition: none
@@ -112,5 +99,11 @@ input
         background: #78BDC9cc
     100%
         background: #7ABF72cc
+
+@keyframes rotate
+    80%
+        transform: rotate(0)
+    100%
+        transform: rotate(360deg)
 
 </style>
