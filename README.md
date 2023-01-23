@@ -1,5 +1,5 @@
-Picorama GUI
-=================
+Picorama: A Micro Photo Blogging Platform
+=========================================
 
 Requirements
 ------------
