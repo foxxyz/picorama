@@ -4,7 +4,7 @@
   "description": "Picorama Server",
   "main": "index.js",
   "scripts": {
-    "pull": "rsync -av picorama:/home/protected/cv/server/media/ media",
+    "pull": "rsync -av picorama:/home/protected/picorama/server/media/ media",
     "lint": "eslint .",
     "test": "jest"
   },

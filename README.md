@@ -20,7 +20,7 @@ Installation
 Deployment
 ----------
 
- * Create a link for the world to access your photos: `ln -s ../protected/cv/server/thumbs photos`
+ * Create a link for the world to access your photos: `ln -s ../protected/picorama/server/thumbs photos`
  * Set up a run script that can be executed as a daemon. For example:
 
 ```

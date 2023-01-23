@@ -1,7 +1,7 @@
 {
   "name": "picorama-gui",
   "version": "1.4.0",
-  "description": "GUI Front-End for CV Instances",
+  "description": "GUI Front-End for Picorama Instances",
   "private": true,
   "scripts": {
     "dev": "vite",
