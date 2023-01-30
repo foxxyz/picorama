@@ -1,5 +1,24 @@
+const { vol } = require('memfs')
+const bcrypt = require('bcrypt')
+const { join } = require('path')
 const SQL = require('sql-template-strings')
 const request = require('supertest')
+
+vol.fromJSON({
+    './media': {},
+    './thumbs': {},
+})
+
+// Mock sharp so it writes to memfs instead actual filesystem
+jest.mock('sharp', () => {
+    const { fs } = require('memfs')
+    const sharp = jest.requireActual('sharp')
+    sharp.prototype.toFile = async function(fileout) {
+        fs.writeFileSync(fileout, await this.toBuffer())
+    }
+    return sharp
+})
+
 const { createApp } = require('../app')
 const { createDB } = require('../db')
 
@@ -58,5 +77,45 @@ describe('General', () => {
         expect(res.body.next).toBe(null)
         expect(res.body.photos.length).toBe(0)
         expect(res.body.prev).toBe(3)
+    })
+})
+
+describe('Posting', () => {
+    let app, db
+    beforeAll(async() => {
+        db = await createDB(':memory:')
+        await db.migrate()
+        app = createApp({ authCode: 'TESTNG', db })
+    })
+    beforeEach(async() => {
+        await db.run(SQL`DELETE FROM Photo`)
+    })
+    afterAll(async() => {
+        await db.close()
+    })
+    it('accepts jpg file submissions', async() => {
+        const hash = await bcrypt.hash('TESTNG', 10)
+        const res = await request(app).post('/add/')
+            .set('Authorization', `Bearer ${hash}`)
+            .field('date', '2020-08-20T00:19')
+            .attach('photo', join(__dirname, 'fixtures/example.jpg'))
+        expect(vol.existsSync(join('.', 'thumbs', '2020-08-20-1597882740-1280.jpg'))).toBe(true)
+        expect(vol.existsSync(join('.', 'thumbs', '2020-08-20-1597882740-800.jpg'))).toBe(true)
+        expect(vol.existsSync(join('.', 'media', '2020-08-20-1597882740.jpg'))).toBe(true)
+        expect(res.statusCode).toBe(200)
+    })
+    it('rejects submissions without authentication', async() => {
+        const res = await request(app).post('/add/')
+            .field('date', '2020-08-20T00:19')
+            .attach('photo', join(__dirname, 'fixtures/example.jpg'))
+        expect(res.statusCode).toBe(403)
+    })
+    it('rejects submissions with invalid auth codes', async() => {
+        const res = await request(app).post('/add/')
+            .set('Authorization', 'Bearer INVALID')
+            .field('date', '2020-08-20T00:19')
+            .attach('photo', join(__dirname, 'fixtures/example.jpg'))
+        expect(res.text).toBe('Authentication Failure')
+        expect(res.statusCode).toBe(403)
     })
 })

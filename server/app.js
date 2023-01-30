@@ -60,21 +60,19 @@ function createApp({ authCode, db, url }) {
         }
 
         // Construct file name
-        date = new Date(date)
-        const timeZoneOffset = date.getTimezoneOffset()
-        const localDate = new Date(date.valueOf() - timeZoneOffset * 60 * 1000)
-        const fileName = `${STORAGE_DIR}/${localDate.toISOString().slice(0, 10)}-${date.valueOf() / 1000}.jpg`
+        date = new Date(`${date}:00Z`)
+        const targetName = `${date.toISOString().slice(0, 10)}-${date.valueOf() / 1000}`
 
         // Write photo
+        let outputFile
         try {
-            await req.files.photo.mv(fileName)
-            await addEntry(db, path.basename(fileName))
+            outputFile = await addEntry(db, targetName, req.files.photo)
         } catch(e) {
             console.error(e)
             return res.status(500).send(e.message)
         }
 
-        console.info(`Added photo for ${localDate.toISOString().slice(0, 10)}: ${fileName}`)
+        console.info(`Added photo for ${date.toISOString().slice(0, 10)}: ${outputFile}`)
         res.send('Done')
     })
 
@@ -102,9 +100,9 @@ function createApp({ authCode, db, url }) {
     return app
 }
 
-async function addEntry(db, fileName) {
+async function addEntry(db, name, { data }) {
     // Parse date and timestamp
-    const parts = fileName.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))\.jpg$/)
+    const parts = name.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))$/)
     if (!parts) {
         throw new Error('No date found in filename')
     }
@@ -114,17 +112,20 @@ async function addEntry(db, fileName) {
 
     const day = new Date(parts[1])
     const timestamp = parts[3] ? new Date(parseInt(parts[3]) * 1000) : day
-    const name = fileName.slice(0, -4)
 
-    // Open file and create thumb
-    const image = sharp(path.join(STORAGE_DIR, fileName)).rotate()
+    // Store original
+    const outputFile = `${path.join(STORAGE_DIR, name)}.jpg`
+    const image = sharp(data).rotate()
+    await image.toFile(outputFile)
+
+    // Create thumbs
     const buffer = await image.toBuffer()
     await image
         .resize(1280, 960)
-        .toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-1280.jpg')))
+        .toFile(`${path.join(THUMB_DIR, name)}-1280.jpg`)
     await image
         .resize(800, 600)
-        .toFile(path.join(THUMB_DIR, fileName.replace('.jpg', '-800.jpg')))
+        .toFile(`${path.join(THUMB_DIR, name)}-800.jpg`)
 
     // Get color palette
     const palette = await colors(buffer, 'image/jpg')
@@ -133,6 +134,8 @@ async function addEntry(db, fileName) {
 
     // Store in database
     await db.run(SQL`INSERT INTO Photo (name, day, timestamp, color, contrast) VALUES (${name}, ${day}, ${timestamp}, ${dominantHex}, ${contrastColor})`)
+
+    return outputFile
 }
 
 module.exports = { createApp, addEntry }
