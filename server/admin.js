@@ -4,8 +4,8 @@ const fs = require('fs')
 const SQL = require('sql-template-strings')
 const packageInfo = require('./package.json')
 
-const { addEntry } = require('.')
-const { createDB } = require('../db')
+const { addEntry } = require('./app')
+const { createDB } = require('./db')
 
 const STORAGE_DIR = './media'
 const DATABASE_FILE = './db.sqlite'
@@ -16,7 +16,13 @@ const parser = new ArgumentParser({ add_help: true, description: 'Picorama Admin
 parser.add_argument('-v', '--version', { action: 'version', version: packageInfo.version })
 parser.add_argument('--import', { help: `Fill database with missing photos from ${STORAGE_DIR}`, action: 'store_true' })
 parser.add_argument('--delete', { help: 'Delete entries for a particular day (I.E. "2018-06-17")' })
+parser.add_argument('--create', { help: 'Create initial database', action: 'store_true' })
 const args = parser.parse_args()
+
+async function createInitial() {
+    const db = await createDB(DATABASE_FILE)
+    await db.migrate()
+}
 
 async function deleteEntry(day) {
     const db = await createDB(DATABASE_FILE)
@@ -48,3 +54,4 @@ async function importExisting() {
 
 if (args.delete) deleteEntry(args.delete)
 else if (args.import) importExisting()
+else if (args.create) createInitial()
