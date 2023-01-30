@@ -100,7 +100,7 @@ function createApp({ authCode, db, url }) {
     return app
 }
 
-async function addEntry(db, name, { data }) {
+async function addEntry(db, name, { data, mimetype }) {
     // Parse date and timestamp
     const parts = name.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))$/)
     if (!parts) {
@@ -128,7 +128,7 @@ async function addEntry(db, name, { data }) {
         .toFile(`${path.join(THUMB_DIR, name)}-800.jpg`)
 
     // Get color palette
-    const palette = await colors(buffer, 'image/jpg')
+    const palette = await colors(buffer, mimetype)
     const dominantHex = palette[0].hex()
     const contrastColor = palette[0].hsl()[2] > 0.5 ? '#000000' : '#ffffff'
 

@@ -104,6 +104,17 @@ describe('Posting', () => {
         expect(vol.existsSync(join('.', 'media', '2020-08-20-1597882740.jpg'))).toBe(true)
         expect(res.statusCode).toBe(200)
     })
+    it('accepts png file submissions', async() => {
+        const hash = await bcrypt.hash('TESTNG', 10)
+        const res = await request(app).post('/add/')
+            .set('Authorization', `Bearer ${hash}`)
+            .field('date', '2020-01-01T00:00')
+            .attach('photo', join(__dirname, 'fixtures/example.png'))
+        expect(vol.existsSync(join('.', 'thumbs', '2020-01-01-1577836800-1280.jpg'))).toBe(true)
+        expect(vol.existsSync(join('.', 'thumbs', '2020-01-01-1577836800-800.jpg'))).toBe(true)
+        expect(vol.existsSync(join('.', 'media', '2020-01-01-1577836800.jpg'))).toBe(true)
+        expect(res.statusCode).toBe(200)
+    })
     it('rejects submissions without authentication', async() => {
         const res = await request(app).post('/add/')
             .field('date', '2020-08-20T00:19')
