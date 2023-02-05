@@ -1,3 +1,5 @@
+![Loupedeck Live Interface](/docs/logo.png?raw=true)
+
 Picorama: A Micro Photo Blogging Platform
 =========================================
 
