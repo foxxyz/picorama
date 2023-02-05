@@ -93,7 +93,7 @@ function createApp({ authCode, db, url }) {
     app.get('/history/:dayNum', async(req, res) => {
         const { dayNum } = req.params
         const prefixed = dayNum.padStart(3, '0')
-        const photos = await db.all(SQL`SELECT *, strftime('%j', datetime(day/1000, 'unixepoch')) AS dayNum FROM Photo WHERE dayNum = ${prefixed} ORDER BY timestamp DESC LIMIT 10`)
+        const photos = await db.all(SQL`SELECT *, strftime('%j', datetime(day/1000, 'unixepoch')) AS dayNum FROM Photo WHERE dayNum = ${prefixed} ORDER BY timestamp`)
         res.json({ photos })
     })
 
