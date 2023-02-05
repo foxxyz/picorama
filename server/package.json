@@ -4,9 +4,10 @@
   "description": "Picorama Server",
   "main": "index.js",
   "scripts": {
-    "pull": "rsync -av picorama:/home/protected/picorama/server/media/ media",
+    "init": "node admin.js --create",
     "lint": "eslint .",
-    "test": "jest"
+    "test": "jest",
+    "start": "node index.js"
   },
   "author": "foxxyz",
   "license": "UNLICENSED",
