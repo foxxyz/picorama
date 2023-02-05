@@ -36,14 +36,14 @@ function createApp({ authCode, db, url }) {
     })
 
     // Upload new photo
-    app.post('/add/', async (req, res) => {
+    app.post('/add/', async(req, res) => {
         // Make sure request is authenticated
         try {
             if (!req.headers.authorization) throw new Error('No credentials provided')
             const hash = req.headers.authorization.replace('Bearer ', '')
             const result = await bcrypt.compare(authCode, hash)
             if (!result) throw new Error('Incorrect credentials')
-        } catch(e) {
+        } catch (e) {
             console.warn(`Auth failure for request from ${req.ip}: ${e}`)
             return res.status(403).send('Authentication Failure')
         }
@@ -67,7 +67,7 @@ function createApp({ authCode, db, url }) {
         let outputFile
         try {
             outputFile = await addEntry(db, targetName, req.files.photo)
-        } catch(e) {
+        } catch (e) {
             console.error(e)
             return res.status(500).send(e.message)
         }
@@ -77,7 +77,7 @@ function createApp({ authCode, db, url }) {
     })
 
     // Query by page
-    app.get('/q/:page', async (req, res) => {
+    app.get('/q/:page', async(req, res) => {
         const total = (await db.get(SQL`SELECT COUNT(*) AS total FROM Photo`)).total
         const page = req.params.page ? parseInt(req.params.page) : 1
         // Don't exceed max posts
@@ -90,7 +90,7 @@ function createApp({ authCode, db, url }) {
     })
 
     // Query by day of year
-    app.get('/history/:dayNum', async (req, res) => {
+    app.get('/history/:dayNum', async(req, res) => {
         const { dayNum } = req.params
         const prefixed = dayNum.padStart(3, '0')
         const photos = await db.all(SQL`SELECT *, strftime('%j', datetime(day/1000, 'unixepoch')) AS dayNum FROM Photo WHERE dayNum = ${prefixed} ORDER BY timestamp DESC LIMIT 10`)

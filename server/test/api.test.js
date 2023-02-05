@@ -51,7 +51,7 @@ describe('General', () => {
     it('Returns a week worth of entries on the main endpoint', async() => {
         // 14 test posts
         const first = new Date('2020-08-20').getTime()
-        for(let i = 0; i < 14; i++) {
+        for (let i = 0; i < 14; i++) {
             addEntry(db, first + i * DAY)
         }
         const res = await request(app).get('/q/1/')
@@ -60,7 +60,7 @@ describe('General', () => {
     it('Returns only remaining posts on the last page', async() => {
         // 16 posts should only return 2 only the last post
         const first = new Date('2020-08-20').getTime()
-        for(let i = 0; i < 16; i++) {
+        for (let i = 0; i < 16; i++) {
             addEntry(db, first + i * DAY)
         }
         const res = await request(app).get('/q/3/')
@@ -69,7 +69,7 @@ describe('General', () => {
     it('Returns the last valid previous page if querying past the amount present', async() => {
         // 16 test posts
         const first = new Date('2020-08-20').getTime()
-        for(let i = 0; i < 16; i++) {
+        for (let i = 0; i < 16; i++) {
             addEntry(db, first + i * DAY)
         }
         // Querying page 10 should return page 3 as the last valid page

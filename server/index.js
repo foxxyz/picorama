@@ -18,7 +18,7 @@ function readCredentials({ key, cert }) {
     try {
         key = fs.readFileSync(key)
         cert = fs.readFileSync(cert)
-    } catch(e) {
+    } catch (e) {
         console.error(`Unable to read SSL key/certificate: ${e}. Falling back to HTTP...`)
     }
     return { key, cert }
