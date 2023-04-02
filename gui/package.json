@@ -26,11 +26,6 @@
     "vue-router": "^4.1.6"
   },
   "eslintConfig": {
-    "env": {
-      "es6": true,
-      "browser": true,
-      "vue/setup-compiler-macros": true
-    },
     "extends": [
       "@appliedminds",
       "@appliedminds/eslint-config/vue"
