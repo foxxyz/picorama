@@ -50,6 +50,18 @@
                         v-if="photo"
                         class="date"
                     >{{ photo.date }}<br><span class="year">{{ photo.year }}</span></span>
+                    <badge
+                        v-if="photo.daysSince > 0 && photo.daysSince % 100 === 0 && photo.daysSince < 400"
+                        :value="photo.daysSince"
+                        :color="COLORS[((photo.daysSince / 100) - 1) % COLORS.length]"
+                        unit="Day"
+                    />
+                    <badge
+                        v-if="photo.yearsSince > 0 && photo.anniversary"
+                        :value="photo.yearsSince"
+                        :color="COLORS[(photo.yearsSince - 1) % COLORS.length]"
+                        unit="Year"
+                    />
                 </div>
             </li>
         </ol>
@@ -72,18 +84,23 @@
 </template>
 
 <script setup>
+import { differenceInDays, differenceInYears } from 'date-fns'
 import { ref, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import badge from '@/components/badge.vue'
+
 const API_URL = `${window.location.protocol}//${window.location.hostname}${import.meta.env.PROD ? '/api' : ':8000'}`
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const COLORS = ['#7ABF72', '#F4C65A', '#FC825D', '#78BDC9', '#F5B5FC', '#96F7D2', '#EC8F6A', '#FFC785', '#EF4B4B', '#7189BF']
 
 const next = ref(null)
 const photos = ref([])
 const prev = ref(null)
 const prevLink = ref()
 
-function transform(p) {
+function transform(p, startDate) {
+    const start = new Date(startDate)
     const date = new Date(p.day)
     p.day = DAYS[date.getUTCDay()]
     p.timestamp = new Date(p.timestamp)
@@ -91,13 +108,16 @@ function transform(p) {
     p.year = String(date.getUTCFullYear())
     p.uri = `/photos/${p.name}-800.jpg`
     p.fullURI = `/photos/${p.name}-1280.jpg`
+    p.daysSince = differenceInDays(date, start)
+    p.yearsSince = differenceInYears(date, start)
+    p.anniversary = date.getUTCMonth() === start.getUTCMonth() && date.getUTCDate() === start.getUTCDate()
     return p
 }
 
 async function fetchData(page = 1, append = 0) {
     const response = await fetch(`${API_URL}/q/${page}`)
     const data = await response.json()
-    const newPhotos = data.photos.map(transform)
+    const newPhotos = data.photos.map(p => transform(p, data.start))
     if (append > 0) {
         photos.value = photos.value.concat(newPhotos)
         next.value = data.next
@@ -158,6 +178,13 @@ main.index
     width: 100%
     min-height: 100vh
     position: relative
+    .badge
+        position: absolute
+        right: -1.8em
+        top: -1.8em
+        width: 3.6em
+        height: 3.6em
+        pointer-events: none
     .posts
         a
             width: 100%
@@ -181,7 +208,7 @@ main.index
             max-height: calc(600px + 2em)
             max-width: calc(800px + 2em)
             width: 100%
-            span
+            > span
                 position: absolute
                 text-transform: uppercase
                 font-size: 2em
@@ -192,6 +219,7 @@ main.index
                 bottom: -1.8em
                 right: 0
             .year
+                position: absolute
                 font-size: .5em
                 opacity: .2
                 width: 100%
