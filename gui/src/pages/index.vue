@@ -1,6 +1,10 @@
 <template>
     <main class="index">
-        <div class="empty" v-if="!photos.length">
+        <div class="loading" v-if="loading">
+            <span>⏱️</span>
+            Loading...
+        </div>
+        <div class="empty" v-else-if="!photos.length">
             <span>👀</span>
             Waiting for your first photo...
         </div>
@@ -114,6 +118,7 @@ function transform(p, startDate) {
     return p
 }
 
+const loading = ref(true)
 async function fetchData(page = 1, append = 0) {
     const response = await fetch(`${API_URL}/q/${page}`)
     const data = await response.json()
@@ -141,6 +146,7 @@ async function fetchData(page = 1, append = 0) {
         }
     }
     setSelected()
+    loading.value = false
 }
 
 // Grab updated photos
@@ -269,6 +275,13 @@ main.index
         span
             display: block
             font-size: 8em
+    .loading
+        width: 100%
+        position: absolute
+        top: calc(50% - 4em)
+        text-align: center
+        color: #888
+        animation: fadecycle 1s linear infinite, colorcycle 1s linear infinite
 
 @keyframes colorcycle
     0%
