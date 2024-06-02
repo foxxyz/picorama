@@ -1,11 +1,9 @@
-const sqlite = require('sqlite')
-const sqlite3 = require('sqlite3')
+import { open } from 'sqlite'
+import sqlite3 from 'sqlite3'
 
-function createDB(filename) {
-    return sqlite.open({
+export function createDB(filename) {
+    return open({
         filename,
         driver: sqlite3.Database
     })
 }
-
-module.exports = { createDB }

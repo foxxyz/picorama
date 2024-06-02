@@ -1,10 +1,11 @@
-const bcrypt = require('bcrypt')
-const colors = require('get-image-colors')
-const express = require('express')
-const fileUpload = require('express-fileupload')
-const path = require('path')
-const sharp = require('sharp')
-const SQL = require('sql-template-strings')
+import { join } from 'node:path'
+
+import bcrypt from 'bcrypt'
+import colors from 'get-image-colors'
+import express from 'express'
+import fileUpload from 'express-fileupload'
+import sharp from 'sharp'
+import SQL from 'sql-template-strings'
 
 const STORAGE_DIR = './media'
 const THUMB_DIR = './thumbs'
@@ -12,7 +13,7 @@ const POSTS_PER_PAGE = 7
 // Allow localhost for development
 const CORS_WHITE_LIST = ['http://localhost:3000']
 
-function createApp({ authCode, db, url }) {
+export function createApp({ authCode, db, url }) {
     const app = express()
     app.use(fileUpload())
 
@@ -100,7 +101,7 @@ function createApp({ authCode, db, url }) {
     return app
 }
 
-async function addEntry(db, name, { data, mimetype }) {
+export async function addEntry(db, name, { data, mimetype }) {
     // Parse date and timestamp
     const parts = name.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})(-([0-9]+))$/)
     if (!parts) {
@@ -114,7 +115,7 @@ async function addEntry(db, name, { data, mimetype }) {
     const timestamp = parts[3] ? new Date(parseInt(parts[3]) * 1000) : day
 
     // Store original
-    const outputFile = `${path.join(STORAGE_DIR, name)}.jpg`
+    const outputFile = `${join(STORAGE_DIR, name)}.jpg`
     const image = sharp(data).rotate()
     await image.toFile(outputFile)
 
@@ -122,10 +123,10 @@ async function addEntry(db, name, { data, mimetype }) {
     const buffer = await image.toBuffer()
     await image
         .resize(1280, 960)
-        .toFile(`${path.join(THUMB_DIR, name)}-1280.jpg`)
+        .toFile(`${join(THUMB_DIR, name)}-1280.jpg`)
     await image
         .resize(800, 600)
-        .toFile(`${path.join(THUMB_DIR, name)}-800.jpg`)
+        .toFile(`${join(THUMB_DIR, name)}-800.jpg`)
 
     // Get color palette
     const palette = await colors(buffer, mimetype)
@@ -138,4 +139,3 @@ async function addEntry(db, name, { data, mimetype }) {
     return outputFile
 }
 
-module.exports = { createApp, addEntry }

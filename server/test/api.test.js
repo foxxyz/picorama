@@ -1,8 +1,12 @@
-const { vol } = require('memfs')
-const bcrypt = require('bcrypt')
-const { join } = require('path')
-const SQL = require('sql-template-strings')
-const request = require('supertest')
+import { jest } from '@jest/globals'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { fs, vol } from 'memfs'
+import bcrypt from 'bcrypt'
+import SQL from 'sql-template-strings'
+import request from 'supertest'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 vol.fromJSON({
     './media': {},
@@ -10,17 +14,33 @@ vol.fromJSON({
 })
 
 // Mock sharp so it writes to memfs instead actual filesystem
-jest.mock('sharp', () => {
-    const { fs } = require('memfs')
-    const sharp = jest.requireActual('sharp')
-    sharp.prototype.toFile = async function(fileout) {
-        fs.writeFileSync(fileout, await this.toBuffer())
+jest.unstable_mockModule('sharp', () => {
+    class MockSharp {
+        constructor(data) {
+            this.data = data
+        }
+        resize() {
+            return this
+        }
+        rotate() {
+            return this
+        }
+        toBuffer() {
+            return this.data
+        }
+        async toFile(fileout) {
+            fs.writeFileSync(fileout, await this.toBuffer())
+        }
     }
-    return sharp
+    return {
+        default(data) {
+            return new MockSharp(data)
+        }
+    }
 })
 
-const { createApp } = require('../app')
-const { createDB } = require('../db')
+const { createApp } = await import('../app.js')
+const { createDB } = await import('../db.js')
 
 const DAY = 24 * 3600 * 1000
 async function addEntry(db, timestamp) {

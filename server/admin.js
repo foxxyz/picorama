@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-const { ArgumentParser } = require('argparse')
-const fs = require('fs')
-const SQL = require('sql-template-strings')
-const packageInfo = require('./package.json')
+import { readdirSync } from 'node:fs'
+import { ArgumentParser } from 'argparse'
+import SQL from 'sql-template-strings'
+import packageInfo from './package.json' with { type: 'json' }
 
-const { addEntry } = require('./app')
-const { createDB } = require('./db')
+import { addEntry } from './app.js'
+import { createDB } from './db.js'
 
 const STORAGE_DIR = './media'
 const DATABASE_FILE = './db.sqlite'
@@ -42,7 +42,7 @@ async function importExisting() {
     const db = await createDB(DATABASE_FILE)
 
     await db.migrate({ force: 'last' })
-    for (const photo of fs.readdirSync(STORAGE_DIR)) {
+    for (const photo of readdirSync(STORAGE_DIR)) {
         try {
             console.info(`Importing ${photo}...`)
             await addEntry(db, photo)

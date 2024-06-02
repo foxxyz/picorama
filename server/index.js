@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-const { ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS } = require('argparse')
-const fs = require('fs')
-const http = require('http')
-const https = require('https')
+import fs from 'node:fs'
+import { createServer } from 'node:http'
+import { createServer as createSecureServer } from 'node:https'
+import { ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS } from 'argparse'
 
-const { createApp } = require('./app')
-const { createDB } = require('./db')
-const packageInfo = require('./package.json')
+import { createApp } from './app.js'
+import { createDB } from './db.js'
+import packageInfo from './package.json' with { type: 'json' }
 
 const DATABASE_FILE = './db.sqlite'
 const STORAGE_DIR = './media'
@@ -46,7 +46,7 @@ async function run() {
     const app = createApp({ db, authCode: args.auth, ...args })
     const httpsCredentials = readCredentials(args)
     const scheme = httpsCredentials ? 'https' : 'http'
-    const server = httpsCredentials ? https.createServer(httpsCredentials, app) : http.createServer(app)
+    const server = httpsCredentials ? createSecureServer(httpsCredentials, app) : createServer(app)
     server.listen(args.port, () => {
         const addr = server.address()
         console.info(`--- Picorama Server Active at ${scheme}://${addr.address}:${addr.port} ---`)
