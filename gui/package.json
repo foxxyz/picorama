@@ -1,6 +1,6 @@
 {
   "name": "@picorama/gui",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "GUI Front-End for Picorama Instances",
   "private": true,
   "type": "module",
