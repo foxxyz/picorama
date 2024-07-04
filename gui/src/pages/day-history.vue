@@ -73,6 +73,16 @@ setInterval(() => {
 <style lang="sass">
 main.day-history
     width: 100%
+    height: 100vh
+    display: flex
+    flex-direction: column
+    div.image
+        width: 100%
+        height: 100%
+        a
+            width: 100%
+            height: 100%
+            display: block
     header
         padding: 0 1rem
         font-size: 2em
@@ -80,15 +90,33 @@ main.day-history
     img
         display: block
         width: 100%
+        height: 100%
+        object-fit: cover
     li
         padding: .5rem
         flex-grow: 1
         width: 20em
+        height: 100%
         position: relative
     ol
         display: flex
         flex-wrap: wrap
         list-style: none
+        flex-grow: 1
+        min-height: 0
+        &:has(> :nth-child(n+4))
+            li
+                height: 50%
+                width: 50vw
+        &:has(> :nth-child(n+5))
+            li
+                width: 30em
+        &:has(> :nth-child(n+9))
+            li
+                width: 20em
+        &:has(> :nth-child(n+13))
+            li
+                height: calc(100% / 3)
     .year
         font-size: 3em
         position: absolute
