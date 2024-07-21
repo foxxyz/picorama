@@ -48,10 +48,10 @@ async function addEntry(db, timestamp) {
     const timestampDate = new Date(timestamp)
     const dominantHex = 'ff0000'
     const contrastColor = '000000'
-    await db.run(SQL`INSERT INTO Photo (name, day, timestamp, color, contrast) VALUES (${name}, ${timestampDate}, ${timestampDate}, ${dominantHex}, ${contrastColor})`)
+    await db.run(SQL`INSERT INTO Photo (name, day, timestamp, color, contrast) VALUES (${name}, ${timestampDate.getTime()}, ${timestampDate.getTime()}, ${dominantHex}, ${contrastColor})`)
 }
 
-describe('General', () => {
+describe('Querying', () => {
     let app, db
     beforeAll(async() => {
         db = await createDB(':memory:')
@@ -97,6 +97,26 @@ describe('General', () => {
         expect(res.body.next).toBe(null)
         expect(res.body.photos.length).toBe(0)
         expect(res.body.prev).toBe(3)
+    })
+    it('Returns the correct page for a particular date', async() => {
+        // 16 test posts
+        const first = new Date('2020-08-20').getTime()
+        for (let i = 0; i < 16; i++) {
+            addEntry(db, first + i * DAY)
+        }
+        // Querying page 10 should return page 3 as the last valid page
+        const res = await request(app).get('/page/2020/08/22')
+        expect(res.body.page).toBe(2)
+    })
+    it('Returns the correct page for a particular month', async() => {
+        // 16 test posts
+        const first = new Date('2020-08-20').getTime()
+        for (let i = 0; i < 16; i++) {
+            addEntry(db, first + i * DAY)
+        }
+        // Querying page 10 should return page 3 as the last valid page
+        const res = await request(app).get('/page/2020/09')
+        expect(res.body.page).toBe(1)
     })
 })
 
