@@ -89,6 +89,19 @@ main.day-history
         display: flex
         flex-wrap: wrap
         list-style: none
+        &:has(> :nth-child(n+4))
+            li
+                height: 50%
+                width: 50vw
+        &:has(> :nth-child(n+5))
+            li
+                width: 30em
+        &:has(> :nth-child(n+9))
+            li
+                width: 20em
+        &:has(> :nth-child(n+13))
+            li
+                height: calc(100% / 3)
     .year
         font-size: 3em
         position: absolute
@@ -96,4 +109,29 @@ main.day-history
         bottom: 0
         right: .5em
         opacity: .3
+
+    // When printing (to paper or screen, such as a TV)
+    // Fill the whole screen and hide the header
+    @media print
+        height: 100vh
+        display: flex
+        flex-direction: column
+        div.image
+            width: 100%
+            height: 100%
+            a
+                width: 100%
+                height: 100%
+                display: block
+        header
+            display: none
+        img
+            height: 100%
+            object-fit: cover
+        li
+            height: 100%
+        ol
+            flex-grow: 1
+            min-height: 0
+
 </style>

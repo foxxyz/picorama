@@ -88,6 +88,10 @@ input
                 filter: contrast(3)
                 transition: none
 
+    @media print
+        h1
+            display: none
+
 @keyframes cycle
     0%
         background: #7ABF72cc
