@@ -89,12 +89,13 @@
 
 <script setup>
 import { differenceInDays, differenceInYears } from 'date-fns'
-import { ref, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue'
+import { inject, ref, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import badge from '@/components/badge.vue'
 
-const API_URL = `${window.location.protocol}//${window.location.hostname}${import.meta.env.PROD ? '/api' : ':8000'}`
+const api = inject('api')
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const COLORS = ['#7ABF72', '#F4C65A', '#FC825D', '#78BDC9', '#F5B5FC', '#96F7D2', '#EC8F6A', '#FFC785', '#EF4B4B', '#7189BF']
 
@@ -120,8 +121,7 @@ function transform(p, startDate) {
 
 const loading = ref(true)
 async function fetchData(page = 1, append = 0) {
-    const response = await fetch(`${API_URL}/q/${page}`)
-    const data = await response.json()
+    const data = await api.query(`/q/${page}`)
     const newPhotos = data.photos.map(p => transform(p, data.start))
     if (append > 0) {
         photos.value = photos.value.concat(newPhotos)

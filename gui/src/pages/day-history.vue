@@ -34,15 +34,14 @@
 
 <script setup>
 import { format, getDayOfYear, setDayOfYear } from 'date-fns'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
-const API_URL = `${window.location.protocol}//${window.location.hostname}${import.meta.env.PROD ? '/api' : ':8000'}`
+const api = inject('api')
 
 const photos = ref([])
 async function fetchData(dayOfYear) {
-    const response = await fetch(`${API_URL}/history/${dayOfYear}`)
-    const data = await response.json()
+    const data = await api.query(`/history/${dayOfYear}`)
     photos.value = data.photos.map(p => {
         const date = new Date(p.day)
         p.year = String(date.getUTCFullYear())
