@@ -91,10 +91,13 @@ export function createApp({ authCode, db, url }) {
     })
 
     // Query by day of year
-    app.get('/history/:dayNum', async(req, res) => {
-        const { dayNum } = req.params
-        const prefixed = dayNum.padStart(3, '0')
-        const photos = await db.all(SQL`SELECT *, strftime('%j', datetime(day/1000, 'unixepoch')) AS dayNum FROM Photo WHERE dayNum = ${prefixed} ORDER BY timestamp DESC`)
+    // year is necessary to account for leap years
+    app.get('/history/:year/:dayNum', async(req, res) => {
+        const { dayNum, year } = req.params
+        const beginningOfYear = new Date(year, 0)
+        const date = new Date(beginningOfYear.setDate(parseInt(dayNum)))
+        const prefixed = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+        const photos = await db.all(SQL`SELECT *, strftime('%m-%d', datetime(day/1000, 'unixepoch')) AS monthDay FROM Photo WHERE monthDay = ${prefixed} ORDER BY timestamp DESC`)
         res.json({ photos })
     })
 

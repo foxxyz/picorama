@@ -1,6 +1,6 @@
 {
   "name": "@picorama/server",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Picorama Server",
   "main": "index.js",
   "type": "module",

@@ -118,6 +118,32 @@ describe('Querying', () => {
         const res = await request(app).get('/page/2020/09')
         expect(res.body.page).toBe(1)
     })
+    it('Returns the correct dates from history on leap years', async() => {
+        // 5 previous years
+        for (let i = 0; i < 5; i++) {
+            addEntry(db, new Date(`${2019 + i}-05-04`).getTime())
+        }
+        // Querying day 125 on a leap year should return photos for
+        // May 4th on previous years (day 124)
+        const res = await request(app).get('/history/2024/125')
+        expect(res.body.photos.length).toBe(5)
+        // On a non-leap year, day 124 is May 4th and should return the same result
+        const res2 = await request(app).get('/history/2025/124')
+        expect(res2.body.photos.length).toBe(5)
+    })
+    it('Returns history photos for Feb 29th', async() => {
+        // Two leap year photos
+        addEntry(db, new Date('2004-02-29').getTime())
+        addEntry(db, new Date('2000-02-29').getTime())
+        // Add feb 28th and march 1st for other years
+        for (let i = 0; i < 7; i++) {
+            addEntry(db, new Date(`${1999 + i}-02-28`).getTime())
+            addEntry(db, new Date(`${1999 + i}-03-01`).getTime())
+        }
+        // Querying Feb 29th should return only 2 entries
+        const res = await request(app).get('/history/2024/60')
+        expect(res.body.photos.length).toBe(2)
+    })
 })
 
 describe('Posting', () => {
