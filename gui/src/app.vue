@@ -19,6 +19,8 @@ const title = 'Picorama'
 </script>
 
 <style lang="sass">
+@use 'sass:math'
+
 // Reset default styles
 *
     margin: 0
@@ -74,16 +76,16 @@ input
             user-select: none
             &:nth-child(1), &:nth-child(5)
                 background: #F4C65Acc
-                animation-delay: 0s, calc(random(6) / 6) + s
+                animation-delay: 0s, calc(math.random(6) / 6) + s
             &:nth-child(2), &:nth-child(6)
                 background: #FC825Dcc
-                animation-delay: .5s, calc(random(6) / 6) + s
+                animation-delay: .5s, calc(math.random(6) / 6) + s
             &:nth-child(3), &:nth-child(7)
                 background: #78BDC9cc
-                animation-delay: 1s, calc(random(6) / 6) + s
+                animation-delay: 1s, calc(math.random(6) / 6) + s
             &:nth-child(4), &:nth-child(8)
                 background: #7ABF72cc
-                animation-delay: 1.5s, calc(random(6) / 6) + s
+                animation-delay: 1.5s, calc(math.random(6) / 6) + s
             &:hover
                 filter: contrast(3)
                 transition: none

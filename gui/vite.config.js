@@ -20,6 +20,13 @@ const serveImages = () => ({
 })
 
 export default {
+    css: {
+        preprocessorOptions: {
+            sass: {
+                api: 'modern-compiler'
+            },
+        },
+    },
     plugins: [vue(), serveImages()],
     resolve: {
         alias: {
