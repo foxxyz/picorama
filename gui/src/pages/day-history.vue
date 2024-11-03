@@ -1,7 +1,7 @@
 <template>
     <main class="day-history">
         <header>
-            <h2>{{ format(today, 'MMM do') }}</h2>
+            <h2>{{ format(historyDay, 'MMM do') }}</h2>
         </header>
         <ol>
             <li
@@ -33,15 +33,17 @@
 </template>
 
 <script setup>
-import { format, getDayOfYear, setDayOfYear } from 'date-fns'
+import { format, getDayOfYear, setDayOfYear, setYear } from 'date-fns'
 import { inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const api = inject('api')
 
 const photos = ref([])
-async function fetchData(dayOfYear) {
-    const data = await api.query(`/history/${dayOfYear}`)
+async function fetchData(historyDay) {
+    const year = historyDay.getUTCFullYear()
+    const dayOfYear = getDayOfYear(historyDay)
+    const data = await api.query(`/history/${year}/${dayOfYear}`)
     photos.value = data.photos.map(p => {
         const date = new Date(p.day)
         p.year = String(date.getUTCFullYear())
@@ -54,9 +56,10 @@ async function fetchData(dayOfYear) {
 const route = useRoute()
 
 // Allow date override
-let today = new Date()
-if (route.params.day) today = setDayOfYear(today, route.params.day)
-fetchData(getDayOfYear(today))
+let historyDay = new Date()
+if (route.params.year) historyDay = setYear(historyDay, route.params.year)
+if (route.params.day) historyDay = setDayOfYear(historyDay, route.params.day)
+fetchData(historyDay)
 
 // Check every minute if we've passed the day boundary and reload if so
 let lastCheck = new Date()

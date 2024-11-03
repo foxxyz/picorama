@@ -22,15 +22,15 @@ const routes = [
     { path: '/add', component: UploadPage },
     // Redirect to correct page based on YYYY/mm/dd input
     {
-        path: '/history/:year([0-9]{1,4})/:month([0-9]{1,2})/:day([0-9]{1,2})?',
+        path: '/history/:year([0-9]{1,4})/:month([0-9]{1,2})/:day([0-9]{1,2})',
         component: () => null,
         beforeEnter: async to => {
-            const dateParts = [to.params.year, to.params.month]
-            if (to.params.day) dateParts.push(to.params.day)
+            const dateParts = [to.params.year, to.params.month, to.params.day]
             const { page } = await api.query(`/page/${dateParts.join('/')}`)
             return { name: 'page', params: { page } }
         }
     },
+    { path: '/history/:year([0-9]{1,4})/:day([0-9]{1,3})', component: DayHistoryPage },
     { path: '/history/:day([0-9]{1,3})?', component: DayHistoryPage },
     { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
