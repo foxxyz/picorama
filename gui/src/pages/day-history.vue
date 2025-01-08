@@ -41,7 +41,9 @@ const api = inject('api')
 
 const photos = ref([])
 async function fetchData(historyDay) {
-    const year = historyDay.getUTCFullYear()
+    // Use local year here since historyDay is initialized in the local timezone
+    // Using UTC would sometimes offset it and return the next year
+    const year = historyDay.getFullYear()
     const dayOfYear = getDayOfYear(historyDay)
     const data = await api.query(`/history/${year}/${dayOfYear}`)
     photos.value = data.photos.map(p => {
