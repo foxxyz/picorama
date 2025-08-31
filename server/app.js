@@ -102,7 +102,7 @@ export function createApp({ authCode, db, url }) {
     })
 
     // Query page by month/date
-    app.get('/page/:year/:month/:day?', async(req, res) => {
+    app.get('/page/:year/:month{/:day}', async(req, res) => {
         const { year, month, day } = req.params
         const time = new Date(`${year}-${month.padStart(2, '0')}-${day?.padStart(2, '0') || '01'}:00:00:00Z`)
         const { total } = await db.get(SQL`SELECT COUNT(*) AS total FROM Photo WHERE timestamp >= ${time.getTime()}`)
