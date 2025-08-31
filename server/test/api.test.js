@@ -1,5 +1,6 @@
-import { jest } from '@jest/globals'
+import assert from 'node:assert/strict'
 import { dirname, join } from 'node:path'
+import { after, before, beforeEach, describe, it, mock } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { fs, vol } from 'memfs'
 import bcrypt from 'bcrypt'
@@ -14,28 +15,26 @@ vol.fromJSON({
 })
 
 // Mock sharp so it writes to memfs instead actual filesystem
-jest.unstable_mockModule('sharp', () => {
-    class MockSharp {
-        constructor(data) {
-            this.data = data
-        }
-        resize() {
-            return this
-        }
-        rotate() {
-            return this
-        }
-        toBuffer() {
-            return this.data
-        }
-        async toFile(fileout) {
-            fs.writeFileSync(fileout, await this.toBuffer())
-        }
+class MockSharp {
+    constructor(data) {
+        this.data = data
     }
-    return {
-        default(data) {
-            return new MockSharp(data)
-        }
+    resize() {
+        return this
+    }
+    rotate() {
+        return this
+    }
+    toBuffer() {
+        return this.data
+    }
+    async toFile(fileout) {
+        fs.writeFileSync(fileout, await this.toBuffer())
+    }
+}
+mock.module('sharp', {
+    defaultExport(data) {
+        return new MockSharp(data)
     }
 })
 
@@ -53,7 +52,7 @@ async function addEntry(db, timestamp) {
 
 describe('Querying', () => {
     let app, db
-    beforeAll(async() => {
+    before(async() => {
         db = await createDB(':memory:')
         await db.migrate()
         app = createApp({ db })
@@ -61,12 +60,12 @@ describe('Querying', () => {
     beforeEach(async() => {
         await db.run(SQL`DELETE FROM Photo`)
     })
-    afterAll(async() => {
+    after(async() => {
         await db.close()
     })
     it('Returns 404s for unknown paths', async() => {
         const res = await request(app).get('/')
-        expect(res.statusCode).toBe(404)
+        assert.equal(res.statusCode, 404)
     })
     it('Returns a week worth of entries on the main endpoint', async() => {
         // 14 test posts
@@ -75,7 +74,7 @@ describe('Querying', () => {
             addEntry(db, first + i * DAY)
         }
         const res = await request(app).get('/q/1/')
-        expect(res.body.photos.length).toBe(7)
+        assert.equal(res.body.photos.length, 7)
     })
     it('Returns only remaining posts on the last page', async() => {
         // 16 posts should only return 2 only the last post
@@ -84,7 +83,7 @@ describe('Querying', () => {
             addEntry(db, first + i * DAY)
         }
         const res = await request(app).get('/q/3/')
-        expect(res.body.photos.length).toBe(2)
+        assert.equal(res.body.photos.length, 2)
     })
     it('Returns the last valid previous page if querying past the amount present', async() => {
         // 16 test posts
@@ -94,9 +93,9 @@ describe('Querying', () => {
         }
         // Querying page 10 should return page 3 as the last valid page
         const res = await request(app).get('/q/10/')
-        expect(res.body.next).toBe(null)
-        expect(res.body.photos.length).toBe(0)
-        expect(res.body.prev).toBe(3)
+        assert.equal(res.body.next, null)
+        assert.equal(res.body.photos.length, 0)
+        assert.equal(res.body.prev, 3)
     })
     it('Returns the correct page for a particular date', async() => {
         // 16 test posts
@@ -106,7 +105,7 @@ describe('Querying', () => {
         }
         // Querying page 10 should return page 3 as the last valid page
         const res = await request(app).get('/page/2020/08/22')
-        expect(res.body.page).toBe(2)
+        assert.equal(res.body.page, 2)
     })
     it('Returns the correct page for a particular month', async() => {
         // 16 test posts
@@ -116,7 +115,7 @@ describe('Querying', () => {
         }
         // Querying page 10 should return page 3 as the last valid page
         const res = await request(app).get('/page/2020/09')
-        expect(res.body.page).toBe(1)
+        assert.equal(res.body.page, 1)
     })
     it('Returns the correct dates from history on leap years', async() => {
         // 5 previous years
@@ -126,10 +125,10 @@ describe('Querying', () => {
         // Querying day 125 on a leap year should return photos for
         // May 4th on previous years (day 124)
         const res = await request(app).get('/history/2024/125')
-        expect(res.body.photos.length).toBe(5)
+        assert.equal(res.body.photos.length, 5)
         // On a non-leap year, day 124 is May 4th and should return the same result
         const res2 = await request(app).get('/history/2025/124')
-        expect(res2.body.photos.length).toBe(5)
+        assert.equal(res2.body.photos.length, 5)
     })
     it('Returns history photos for Feb 29th', async() => {
         // Two leap year photos
@@ -142,13 +141,13 @@ describe('Querying', () => {
         }
         // Querying Feb 29th should return only 2 entries
         const res = await request(app).get('/history/2024/60')
-        expect(res.body.photos.length).toBe(2)
+        assert.equal(res.body.photos.length, 2)
     })
 })
 
 describe('Posting', () => {
     let app, db
-    beforeAll(async() => {
+    before(async() => {
         db = await createDB(':memory:')
         await db.migrate()
         app = createApp({ authCode: 'TESTNG', db })
@@ -156,7 +155,7 @@ describe('Posting', () => {
     beforeEach(async() => {
         await db.run(SQL`DELETE FROM Photo`)
     })
-    afterAll(async() => {
+    after(async() => {
         await db.close()
     })
     it('accepts jpg file submissions', async() => {
@@ -165,10 +164,10 @@ describe('Posting', () => {
             .set('Authorization', `Bearer ${hash}`)
             .field('date', '2020-08-20T00:19')
             .attach('photo', join(__dirname, 'fixtures/example.jpg'))
-        expect(vol.existsSync(join('.', 'thumbs', '2020-08-20-1597882740-1280.jpg'))).toBe(true)
-        expect(vol.existsSync(join('.', 'thumbs', '2020-08-20-1597882740-800.jpg'))).toBe(true)
-        expect(vol.existsSync(join('.', 'media', '2020-08-20-1597882740.jpg'))).toBe(true)
-        expect(res.statusCode).toBe(200)
+        assert.equal(vol.existsSync(join('.', 'thumbs', '2020-08-20-1597882740-1280.jpg')), true)
+        assert.equal(vol.existsSync(join('.', 'thumbs', '2020-08-20-1597882740-800.jpg')), true)
+        assert.equal(vol.existsSync(join('.', 'media', '2020-08-20-1597882740.jpg')), true)
+        assert.equal(res.statusCode, 200)
     })
     it('accepts png file submissions', async() => {
         const hash = await bcrypt.hash('TESTNG', 10)
@@ -176,23 +175,23 @@ describe('Posting', () => {
             .set('Authorization', `Bearer ${hash}`)
             .field('date', '2020-01-01T00:00')
             .attach('photo', join(__dirname, 'fixtures/example.png'))
-        expect(vol.existsSync(join('.', 'thumbs', '2020-01-01-1577836800-1280.jpg'))).toBe(true)
-        expect(vol.existsSync(join('.', 'thumbs', '2020-01-01-1577836800-800.jpg'))).toBe(true)
-        expect(vol.existsSync(join('.', 'media', '2020-01-01-1577836800.jpg'))).toBe(true)
-        expect(res.statusCode).toBe(200)
+        assert.equal(vol.existsSync(join('.', 'thumbs', '2020-01-01-1577836800-1280.jpg')), true)
+        assert.equal(vol.existsSync(join('.', 'thumbs', '2020-01-01-1577836800-800.jpg')), true)
+        assert.equal(vol.existsSync(join('.', 'media', '2020-01-01-1577836800.jpg')), true)
+        assert.equal(res.statusCode, 200)
     })
     it('rejects submissions without authentication', async() => {
         const res = await request(app).post('/add/')
             .field('date', '2020-08-20T00:19')
             .attach('photo', join(__dirname, 'fixtures/example.jpg'))
-        expect(res.statusCode).toBe(403)
+        assert.equal(res.statusCode, 403)
     })
     it('rejects submissions with invalid auth codes', async() => {
         const res = await request(app).post('/add/')
             .set('Authorization', 'Bearer INVALID')
             .field('date', '2020-08-20T00:19')
             .attach('photo', join(__dirname, 'fixtures/example.jpg'))
-        expect(res.text).toBe('Authentication Failure')
-        expect(res.statusCode).toBe(403)
+        assert.equal(res.text, 'Authentication Failure')
+        assert.equal(res.statusCode, 403)
     })
 })
