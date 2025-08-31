@@ -6,7 +6,7 @@ Picorama: A Micro Photo Blogging Platform
 Requirements
 ------------
 
- - [Node.js 18+](https://nodejs.org/en/download/package-manager/)
+ - [Node.js 20+](https://nodejs.org/en/download/package-manager/)
 
 Installation
 ------------
